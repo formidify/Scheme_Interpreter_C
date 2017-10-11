@@ -28,8 +28,21 @@ int main() {
    display(head);
    Value *reversed = reverse(head);
    display(reversed);
-//    
+
    printf("Length = %i\n", length(head));
    printf("Empty? %i\n", isNull(head));
+   cleanup(reversed);
    cleanup(head);
+
+   /*
+   James
+   */
+
+   /*
+   Tina
+   */
+
+   /*
+   Chae
+   */
 }
