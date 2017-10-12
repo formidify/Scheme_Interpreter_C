@@ -1,3 +1,7 @@
+/*
+* By Chae Kim, Tina Liu, James Yangf
+* Program implementing methods for a Linked List in C
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include "value.h"
@@ -11,7 +15,7 @@
 Value *makeNull(){
    Value *list = malloc(sizeof(Value));
    if(!list){
-      printf("Out of memory");
+      printf("Out of memory\n");
    }
    list->type= NULL_TYPE;
    return list;
@@ -32,6 +36,7 @@ Value *cons(Value *car, Value *cdr) {
 * Print a representation of the contents of a linked list.
 */
 void display(Value *list){
+   assert(list != NULL);
    if (list->type == NULL_TYPE) {
       printf("\n");
    }
@@ -46,13 +51,15 @@ void display(Value *list){
          case STR_TYPE:
             printf("%s ", list->c.car->s);
             break;
-		 case CONS_TYPE:
-            display(list->c.cdr);
+         case CONS_TYPE:
+            display(list->c.car);
+            break;
+         case NULL_TYPE:
+            printf("() ");
             break;
          default:
-            printf("ERR: ILL FORMED LIST");
-			return;
-
+            printf("ERR: ILL FORMED LIST\n");
+            return;
       }
       display(list->c.cdr);
    }
@@ -86,7 +93,7 @@ bool isNull(Value *value){
 }
 
 /*
-* Compute the length of the given list.
+* Compute the length of the given proper list.
 * (Uses assertions to ensure that this is a legitimate operation.)
 */
 int length(Value *value){
@@ -141,7 +148,6 @@ Value *reverse(Value *list){
 *      be after we've got an easier way of managing memory.
 */
 void cleanup(Value *list){
-   assert(list != NULL);
 	if(isNull(list)){
 		free(list);
 	} else{
