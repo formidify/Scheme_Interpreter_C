@@ -52,7 +52,7 @@ void display(Value *list){
          default:
             printf("ERR: ILL FORMED LIST");
 			return;
-			
+
       }
       display(list->c.cdr);
    }
@@ -81,6 +81,7 @@ Value *cdr(Value *list){
 * (Uses assertions to ensure that this is a legitimate operation.)
 */
 bool isNull(Value *value){
+   assert(value != NULL);
 	return (value->type == NULL_TYPE);
 }
 
@@ -138,6 +139,7 @@ Value *reverse(Value *list){
 *      be after we've got an easier way of managing memory.
 */
 void cleanup(Value *list){
+   assert(list != NULL);
 	if(isNull(list)){
 		free(list);
 	} else{

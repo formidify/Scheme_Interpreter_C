@@ -4,35 +4,14 @@
 #include "linkedlist.h"
 
 int main() {
-   Value *val1 = malloc(sizeof(Value));
+   Value *head = makeNull();
+   printf("Expected length 0, Actual length: %i \n", length(head));
    /*val1->type = NULL_TYPE;
    printf("%d\n", isNull(val1));
    Value *val2 = malloc(sizeof(Value));
    val2->type = INT_TYPE;
    printf("%d\n", isNull(val2));*/
-   val1->type = INT_TYPE;
-   val1->i = 12;
    //printf("%d\n", length(val1));
-
-   Value *val2 = malloc(sizeof(Value));
-   val2->type = DOUBLE_TYPE;
-   val2->d = 4.3;
-
-   Value *head = makeNull();
-   printf("%i \n", length(head));
-   head = cons(val1, head);
-   head = cons(val2, head);
-   printf("%i \n", length(head));
-   length(head);
-
-   display(head);
-   Value *reversed = reverse(head);
-   display(reversed);
-
-   printf("Length = %i\n", length(head));
-   printf("Empty? %i\n", isNull(head));
-   cleanup(reversed);
-   cleanup(head);
 
    /*
    James
@@ -41,7 +20,36 @@ int main() {
    /*
    Tina
    */
+   // Value *list = NULL;
+   // isNull(list);
+   // reverse(list);
+   // cleanup(list);
 
+   Value *val1 = malloc(sizeof(Value));
+   val1->type = INT_TYPE;
+   val1->i = 12;
+   Value *val2 = malloc(sizeof(Value));
+   val2->type = DOUBLE_TYPE;
+   val2->d = 4.3;
+   Value *val3 = malloc(sizeof(Value));
+   val3->type = STR_TYPE;
+   val3->s = "hello";
+
+   head = cons(val1, head);
+   Value *reversed = reverse(head);
+   display(reversed);
+   head = cons(val2, head);
+   printf("Expected length 2, Actual length %i \n", length(head));
+   display(head);
+   head = cons(val3, head);
+   printf("Expected length 3, Actual length %i \n", length(head));
+   display(head);;
+   reversed = reverse(head);
+   display(reversed);
+   printf("Expected length 3, Actual length %i\n", length(head));
+   printf("Empty? Expect false (0), Actual: %i\n", isNull(head));
+   cleanup(reversed);
+   cleanup(head);
    /*
    Chae
    */
