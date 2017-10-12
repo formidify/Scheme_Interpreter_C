@@ -48,6 +48,10 @@ int main() {
    display(reversed);
    printf("Expected length 3, Actual length %i\n", length(head));
    printf("Empty? Expect false (0), Actual: %i\n", isNull(head));
+   head->c.car->s = "bye";
+   head->c.cdr->c.car->d = 3.14;
+   display(head);
+   display(reversed);
    cleanup(reversed);
    cleanup(head);
    /*

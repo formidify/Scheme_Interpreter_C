@@ -108,7 +108,9 @@ Value *reverseHelper(Value *list, Value *reversedList){
 		return reversedList;
 	} else{
 		assert(list->type == CONS_TYPE);
-		return reverseHelper(list->c.cdr, cons(list->c.car, reversedList));
+      Value *copy = malloc(sizeof(list->c.car));
+      *copy = *(list->c.car);
+		return reverseHelper(list->c.cdr, cons(copy, reversedList));
 	}
 }
 
