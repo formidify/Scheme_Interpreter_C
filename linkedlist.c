@@ -32,30 +32,27 @@ Value *cons(Value *car, Value *cdr) {
 * Print a representation of the contents of a linked list.
 */
 void display(Value *list){
-   if (list->type == NULL_TYPE) {
-      printf("\n");
-   }
-   else {
-      switch (list->c.car->type) {
-         case INT_TYPE:
-            printf("%i ", list->c.car->i);
+    assert(list != NULL);
+    switch(list->type) {
+        case INT_TYPE:
+            printf("%i", list->i);
             break;
-         case DOUBLE_TYPE:
-            printf("%f ", list->c.car->d);
+        case DOUBLE_TYPE:
+            printf("%f", list->d);
             break;
-         case STR_TYPE:
-            printf("%s ", list->c.car->s);
+        case STR_TYPE:
+            printf("%s", list->s);
             break;
-		 case CONS_TYPE:
-            display(list->c.cdr);
+        case CONS_TYPE:
+            printf("(");
+            display((list->c).car);
+            printf(") ");
+            assert((list->c).cdr->type == CONS_TYPE || (list->c).cdr->type == NULL_TYPE);
+            display((list->c).cdr);
             break;
-         default:
-            printf("ERR: ILL FORMED LIST");
-			return;
-
-      }
-      display(list->c.cdr);
-   }
+        default:
+            break;
+    }
 }
 
 /*
@@ -141,7 +138,6 @@ Value *reverse(Value *list){
 *      be after we've got an easier way of managing memory.
 */
 void cleanup(Value *list){
-   assert(list != NULL);
 	if(isNull(list)){
 		free(list);
 	} else{
