@@ -39,22 +39,20 @@ void display(Value *list){
     assert(list != NULL);
     switch(list->type) {
         case INT_TYPE:
-            printf("%i", list->i);
+            printf("%i ", list->i);
             break;
         case DOUBLE_TYPE:
-            printf("%f", list->d);
+            printf("%f ", list->d);
             break;
         case STR_TYPE:
-            printf("%s", list->s);
+            printf("%s ", list->s);
             break;
         case CONS_TYPE:
-            printf("(");
-            display((list->c).car);
-            printf(") ");
-            assert((list->c).cdr->type == CONS_TYPE || (list->c).cdr->type == NULL_TYPE);
-            display((list->c).cdr);
+            display(list->c.car);
+            display(list->c.cdr);
             break;
         default:
+            printf("\n");
             break;
     }
 }
@@ -64,6 +62,7 @@ void display(Value *list){
 * (Uses assertions to ensure that this is a legitimate operation.)
 */
 Value *car(Value *list){
+   assert(!isNull(list));
 	assert(list->type == CONS_TYPE);
 	return (list->c.car);
 }
@@ -73,6 +72,7 @@ Value *car(Value *list){
 * (Uses assertions to ensure that this is a legitimate operation.)
 */
 Value *cdr(Value *list){
+   assert(!isNull(list));
 	assert(list->type == CONS_TYPE);
 	return (list->c.cdr);
 }

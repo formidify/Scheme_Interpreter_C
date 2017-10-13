@@ -4,46 +4,73 @@
 #include "linkedlist.h"
 
 int main() {
+   //Test empty list
    Value *head = makeNull();
    printf("Expected length 0, Actual length: %i \n", length(head));
-   /*val1->type = NULL_TYPE;
-   printf("%d\n", isNull(val1));
-   Value *val2 = malloc(sizeof(Value));
-   val2->type = INT_TYPE;
-   printf("%d\n", isNull(val2));*/
-   //printf("%d\n", length(val1));
-
-   // Value *list = NULL;
-   // isNull(list);
-   // reverse(list);
-   // cleanup(list);
-
-   printf("Expected length 3, Actual length %i \n", length(head));
+   printf("Empty? Expect true (1), Actual: %i\n", isNull(head));
+   printf("Empty list: ");
    display(head);
-   cleanup(reversed);
-   reversed = reverse(head);
-   display(reversed);
-   printf("Expected length 3, Actual length %i\n", length(head));
-   printf("Empty? Expect false (0), Actual: %i\n", isNull(head));
-   head->c.car->s = "bye";
-   head->c.cdr->c.car->d = 3.14;
-   display(head);
+   Value *reversed = reverse(head);
+   printf("Reversed empty list: ");
    display(reversed);
    cleanup(reversed);
-   cleanup(head);
+   printf("=============Cleaned up reversed.============\n");
 
+   //Check NULL value doesn't throw segmentation error - uses assert
+   //Uncomment one at a time to test:
    // head = NULL;
-   // // display(head);
-   // head = makeNull();
-   // head->type = INT_TYPE;
-   // display(head);
+   // car(head);
+   // cdr(head);
+   // isNull(head);
+   // length(head);
+   // reverse(head);
    // cleanup(head);
 
+   //Create values
+   Value *val1 = malloc(sizeof(Value));
+   val1->type = INT_TYPE;
+   val1->i = 12;
+   Value *val2 = malloc(sizeof(Value));
+   val2->type = DOUBLE_TYPE;
+   val2->d = 4.3;
+   Value *val3 = malloc(sizeof(Value));
+   val3->type = STR_TYPE;
+   val3->s = "hello!";
+
+   //Create a proper list
+   head = cons(val1, head);
+   head = cons(val2, head);
+   head = cons(val3, head);
+
+   printf("Expected length 3, Actual length %i \n", length(head));
+   printf("Head: ");
+   display(head);
+   reversed = reverse(head);
+   printf("Reversed: ");
+   display(reversed);
+   printf("Expected length 3, Actual length %i\n", length(reversed));
+   printf("Empty? Expect false (0), Actual: %i\n", isNull(head));
+
+   //Modify head - reverse should not be modified
+   head->c.car->s = "bye";
+   head->c.cdr->c.car->d = 3.14;
+   printf("Modified head: ");
+   display(head);
+   printf("Original reversed: ");
+   display(reversed);
+   // printf("head car: ");
+   // display(car(head));
+   // printf("\n");
+   printf("head cdr: ");
+   display(cdr(head));
+   cleanup(reversed);
+   cleanup(head);
+   printf("========Cleaned up reversed and head=========\n");
+
    /*
-   Test Display
+   //Test Display - uncommented because cleanup cannot free nested lists
    head = makeNull();
    Value *headTwo = makeNull();
-   Value *empty = makeNull();
    val1 = malloc(sizeof(Value));
    val1->type = INT_TYPE;
    val1->i = 12;
@@ -52,14 +79,13 @@ int main() {
    val2->d = 4.3;
 
    head = cons(val1, head);
+   head = cons(val2, head);
    headTwo = cons(head, headTwo);
-   headTwo = cons(empty, headTwo);
    display(headTwo);
+
+   printf("============Cleaned up headTwo=========\n");
    */
 
-   /*
-   Chae
-   */
    // val1 = malloc(sizeof(Value));
    // val1->type = INT_TYPE;
    // val1->i = 12;
