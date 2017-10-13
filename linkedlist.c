@@ -1,3 +1,7 @@
+/*
+* By Chae Kim, Tina Liu, James Yang
+* Program implementing methods for a Linked List in C
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include "value.h"
@@ -11,7 +15,7 @@
 Value *makeNull(){
    Value *list = malloc(sizeof(Value));
    if(!list){
-      printf("Out of memory");
+      printf("Out of memory\n");
    }
    list->type= NULL_TYPE;
    return list;
@@ -83,7 +87,7 @@ bool isNull(Value *value){
 }
 
 /*
-* Compute the length of the given list.
+* Compute the length of the given proper list.
 * (Uses assertions to ensure that this is a legitimate operation.)
 */
 int length(Value *value){
