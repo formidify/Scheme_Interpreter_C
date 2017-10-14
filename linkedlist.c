@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "value.h"
 #include "linkedlist.h"
+#include "talloc.h"
 #include <string.h>
 #include <assert.h>
 
@@ -13,7 +14,7 @@
 * Create and return an empty list (a new Value object of type NULL_TYPE).
 */
 Value *makeNull(){
-   Value *list = malloc(sizeof(Value));
+   Value *list = talloc(sizeof(Value));
    if(!list){
       printf("Out of memory\n");
    }

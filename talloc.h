@@ -12,7 +12,7 @@
  * Otherwise you'll end up with circular dependencies, since you're going to
  * modify the linked list to use talloc instead of malloc.)
  */
-void *talloc(size_t size);
+Value *talloc(size_t size);
 
 /*
  * Free all pointers allocated by talloc, as well as whatever memory you

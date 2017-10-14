@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "value.h"
 #include "talloc.h"
 #include "linkedlist.h"
