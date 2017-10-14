@@ -10,7 +10,7 @@
 #include <assert.h>
 
 /*
-* Create an empty list (a new Value object of type NULL_TYPE).
+* Create and return an empty list (a new Value object of type NULL_TYPE).
 */
 Value *makeNull(){
    Value *list = malloc(sizeof(Value));
@@ -22,7 +22,7 @@ Value *makeNull(){
 }
 
 /*
-* Create a nonempty list (a new Value object of type CONS_TYPE).
+* Create and return a nonempty list (a new Value object of type CONS_TYPE).
 */
 Value *cons(Value *car, Value *cdr) {
    Value *list = makeNull();
@@ -58,8 +58,7 @@ void display(Value *list){
 }
 
 /*
-* Get the car value of a given list.
-* (Uses assertions to ensure that this is a legitimate operation.)
+* Return the car value of a given list.
 */
 Value *car(Value *list){
    assert(!isNull(list));
@@ -68,8 +67,7 @@ Value *car(Value *list){
 }
 
 /*
-* Get the cdr value of a given list.
-* (Uses assertions to ensure that this is a legitimate operation.)
+* Return the cdr value of a given list.
 */
 Value *cdr(Value *list){
    assert(!isNull(list));
@@ -79,7 +77,7 @@ Value *cdr(Value *list){
 
 /*
 * Test if the given value is a NULL_TYPE value.
-* (Uses assertions to ensure that this is a legitimate operation.)
+* Return 1 if true (is NULL_TYPE), otherwise return 0
 */
 bool isNull(Value *value){
    assert(value != NULL);
@@ -87,8 +85,7 @@ bool isNull(Value *value){
 }
 
 /*
-* Compute the length of the given proper list.
-* (Uses assertions to ensure that this is a legitimate operation.)
+* Return the length of the given list.
 */
 int length(Value *value){
 	Value *temp = value;
@@ -109,7 +106,7 @@ Value *reverseHelper(Value *list, Value *reversedList){
 		return reversedList;
 	} else{
 		assert(list->type == CONS_TYPE);
-      Value *copy = malloc(sizeof(list->c.car));
+      Value *copy = makeNull();
       *copy = *(list->c.car);
 		return reverseHelper(list->c.cdr, cons(copy, reversedList));
 	}
@@ -121,11 +118,7 @@ Value *reverseHelper(Value *list, Value *reversedList){
 * original: that is, there should be no shared memory between the original
 * list and the new one.
 *
-* (Uses assertions to ensure that this is a legitimate operation.)
-*
-* FAQ: What if there are nested lists inside that list?
-* ANS: There won't be for this assignment. There will be later, but that will
-*      be after we've got an easier way of managing memory.
+* Does not handle nested lists.
 */
 Value *reverse(Value *list){
 	Value *newList = makeNull();
@@ -135,11 +128,7 @@ Value *reverse(Value *list){
 /*
 * Frees up all memory directly or indirectly referred to by list.
 *
-* (Uses assertions to ensure that this is a legitimate operation.)
-*
-* FAQ: What if there are nested lists inside that list?
-* ANS: There won't be for this assignment. There will be later, but that will
-*      be after we've got an easier way of managing memory.
+* Does not handle nested lists.
 */
 void cleanup(Value *list){
 	if(isNull(list)){
