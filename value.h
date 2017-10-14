@@ -2,6 +2,7 @@
 #define VALUE_H
 
 typedef enum {
+   PTR_TYPE,
    INT_TYPE,
    DOUBLE_TYPE,
    STR_TYPE,
@@ -12,6 +13,7 @@ typedef enum {
 struct Value {
    valueType type;
    union {
+      void *p;
       int i;
       double d;
       char *s;
