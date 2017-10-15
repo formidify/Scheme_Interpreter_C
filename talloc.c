@@ -22,33 +22,42 @@ Value *talloc(size_t size){
         head = malloc(sizeof(Value));
         head->type = NULL_TYPE;
         initialized = true;
-        printf("initialized!");
     }
     Value *newValue = malloc(size);
-    
-    
-    Value *newPointer = malloc(size);
+    Value *newPointer = malloc(sizeof(Value));
+    Value *temp = malloc(sizeof(Value));
     newPointer->type = PTR_TYPE;
     newPointer->p = newValue;
-    head->c.cdr = head;
-    head->c.car = newPointer;
-    head->type = CONS_TYPE;
+    temp->c.cdr = head;
+    temp->c.car = newPointer;
+    temp->type = CONS_TYPE;
+    head = temp;
     return newValue;
 }
-    
+
+/*
+ * A helper function for tfree() - uses recursion to free the active list
+ */
+void tfreeHelper(Value *list){
+   if(list->type == CONS_TYPE){
+      free(list->c.car->p);
+      free(list->c.car);
+      tfreeHelper(list->c.cdr);
+      free(list);
+   } else{
+      free(list);
+   }
+}
+
 /*
  * Free all pointers allocated by talloc, as well as whatever memory you
  * malloc'ed to create/update the active list.
  */
 
 void tfree(){
-    while (head->type == CONS_TYPE) {
-        free(head->c.car);
-        head = head->c.cdr;
-    }
-    free(head);
+    initialized = false;
+    tfreeHelper(head);
 }
-
 
 /*
  * A simple two-line function to stand in the C function "exit", which calls
@@ -58,7 +67,7 @@ void tfree(){
  */
 void texit(int status){
     tfree();
-    exit(0);
+    exit(status);
 }
 
 #endif
