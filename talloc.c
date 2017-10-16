@@ -17,7 +17,7 @@ static bool initialized = false;
  * Otherwise you'll end up with circular dependencies, since you're going to
  * modify the linked list to use talloc instead of malloc.)
  */
-Value *talloc(size_t size){
+void *talloc(size_t size){
     if(!initialized){
         head = malloc(sizeof(Value));
         head->type = NULL_TYPE;
