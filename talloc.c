@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "value.h"
 #include <stdbool.h>
+#include <assert.h>
 
 #ifndef TALLOC_H
 #define TALLOC_H
@@ -24,6 +25,34 @@ Value *consMakeNull(){
    }
    list->type= NULL_TYPE;
    return list;
+}
+
+/*
+*
+* Test if the given value is a NULL_TYPE value.
+* Return 1 if true (is NULL_TYPE), otherwise return 0
+*/
+bool tallocIsNull(Value *value){
+   assert(value != NULL);
+	return (value->type == NULL_TYPE);
+}
+
+/*
+* Return the car value of a given list.
+*/
+Value *tallocCar(Value *list){
+   assert(!tallocIsNull(list));
+	assert(list->type == CONS_TYPE);
+	return (list->c.car);
+}
+
+/*
+* Return the cdr value of a given list.
+*/
+Value *tallocCdr(Value *list){
+   assert(!tallocIsNull(list));
+	assert(list->type == CONS_TYPE);
+	return (list->c.cdr);
 }
 
 /*
@@ -52,7 +81,7 @@ void *talloc(size_t size){
         initialized = true;
     }
     Value *newValue = malloc(size);
-    Value *newPointer = malloc(sizeof(Value));
+    Value *newPointer = consMakeNull();
     newPointer->type = PTR_TYPE;
     newPointer->p = newValue;
     Value *temp = tallocCons(newPointer, head);
@@ -65,9 +94,9 @@ void *talloc(size_t size){
  */
 void tfreeHelper(Value *list){
    if(list->type == CONS_TYPE){
-      free(list->c.car->p);
-      free(list->c.car);
-      tfreeHelper(list->c.cdr);
+      free(tallocCar(list)->p);
+      free(tallocCar(list));
+      tfreeHelper(tallocCdr(list));
       free(list);
    } else{
       free(list);
