@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "value.h"
 #include "linkedlist.h"
+#include "talloc.h"
 
 int main() {
    //Test empty list
@@ -13,7 +14,7 @@ int main() {
    Value *reversed = reverse(head);
    printf("Reversed empty list: ");
    display(reversed);
-   cleanup(reversed);
+   // cleanup(reversed);
    printf("=============Cleaned up reversed.============\n");
 
    //Check NULL value doesn't throw segmentation error - uses assert
@@ -27,13 +28,13 @@ int main() {
    // cleanup(head);
 
    //Create values
-   Value *val1 = malloc(sizeof(Value));
+   Value *val1 = talloc(sizeof(Value));
    val1->type = INT_TYPE;
    val1->i = 12;
-   Value *val2 = malloc(sizeof(Value));
+   Value *val2 = talloc(sizeof(Value));
    val2->type = DOUBLE_TYPE;
    val2->d = 4.3;
-   Value *val3 = malloc(sizeof(Value));
+   Value *val3 = talloc(sizeof(Value));
    val3->type = STR_TYPE;
    val3->s = "hello!";
 
@@ -45,28 +46,28 @@ int main() {
    printf("Expected length 3, Actual length %i \n", length(head));
    printf("Head: ");
    display(head);
-   reversed = reverse(head);
+   Value *reversed2 = reverse(head);
    printf("Reversed: ");
-   display(reversed);
-   printf("Expected length 3, Actual length %i\n", length(reversed));
+   display(reversed2);
+   printf("Expected length 3, Actual length %i\n", length(reversed2));
    printf("Empty? Expect false (0), Actual: %i\n", isNull(head));
 
-   //Modify head - reverse should not be modified
+   //Modify head - reverse should be modified - shallow copy
    head->c.car->s = "bye";
    head->c.cdr->c.car->d = 3.14;
    printf("Modified head: ");
    display(head);
    printf("Original reversed: ");
-   display(reversed);
+   display(reversed2);
    // printf("head car: ");
    // display(car(head));
    // printf("\n");
    printf("head cdr: ");
    display(cdr(head));
-   cleanup(reversed);
-   cleanup(head);
+   // cleanup(reversed);
+   // cleanup(head);
    printf("========Cleaned up reversed and head=========\n");
-
+   texit(1);
    /*
    //Test Display - uncommented because cleanup cannot free nested lists
    head = makeNull();

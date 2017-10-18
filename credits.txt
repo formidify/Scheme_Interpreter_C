@@ -1,2 +1,5 @@
 proj1
 We went to office hours - mostly clarification questions.
+
+proj2
+We worked by ourselves.

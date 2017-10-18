@@ -107,20 +107,19 @@ Value *reverseHelper(Value *list, Value *reversedList){
 		return reversedList;
 	} else{
 		assert(list->type == CONS_TYPE);
-      Value *copy = makeNull();
-      *copy = *(list->c.car);
-		return reverseHelper(list->c.cdr, cons(copy, reversedList));
+		return reverseHelper(list->c.cdr, cons(list->c.car, reversedList));
 	}
 }
 
 /*
-* Create a new linked list whose entries correspond to the given list's
-* entries, but in reverse order.  The resulting list is a deep copy of the
-* original: that is, there should be no shared memory between the original
-* list and the new one.
-*
-* Does not handle nested lists.
-*/
+ * Create a new linked list whose entries correspond to the given list's
+ * entries, but in reverse order.  The resulting list is a shallow copy of the
+ * original: that is, stored data within the linked list should NOT be
+ * duplicated; rather, the new list's (new) CONS_TYPE nodes should point to
+ * precisely the items in the original list.
+ *
+ * (Uses assertions to ensure that this is a legitimate operation.)
+ */
 Value *reverse(Value *list){
 	Value *newList = makeNull();
 	return reverseHelper(list, newList);

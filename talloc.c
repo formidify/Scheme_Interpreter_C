@@ -1,3 +1,8 @@
+/*
+* By Chae Kim, Tina Liu, James Yang
+* Program implementing talloc, a garbage collector that stores pointers to
+* memory allocated in a linked list.
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "value.h"
@@ -10,6 +15,30 @@ static Value *head;
 static bool initialized = false;
 
 /*
+* Create and return an empty list (a new Value object of type NULL_TYPE).
+*/
+Value *consMakeNull(){
+   Value *list = malloc(sizeof(Value));
+   if(!list){
+      printf("Out of memory\n");
+   }
+   list->type= NULL_TYPE;
+   return list;
+}
+
+/*
+* Create and return a nonempty list (a new Value object of type CONS_TYPE).
+*/
+Value *tallocCons(Value *car, Value *cdr) {
+   Value *list = consMakeNull();
+   list->type = CONS_TYPE;
+   list->c.car = car;
+   list->c.cdr = cdr;
+   return list;
+}
+
+
+/*
  * A malloc-like function that allocates memory, tracking all allocated
  * pointers in the "active list."  (You can choose your implementation of the
  * active list, but whatever it is, your talloc code should NOT call functions
@@ -19,18 +48,14 @@ static bool initialized = false;
  */
 void *talloc(size_t size){
     if(!initialized){
-        head = malloc(sizeof(Value));
-        head->type = NULL_TYPE;
+        head = consMakeNull();
         initialized = true;
     }
     Value *newValue = malloc(size);
     Value *newPointer = malloc(sizeof(Value));
-    Value *temp = malloc(sizeof(Value));
     newPointer->type = PTR_TYPE;
     newPointer->p = newValue;
-    temp->c.cdr = head;
-    temp->c.car = newPointer;
-    temp->type = CONS_TYPE;
+    Value *temp = tallocCons(newPointer, head);
     head = temp;
     return newValue;
 }
