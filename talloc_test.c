@@ -17,6 +17,12 @@ int main() {
    head = cons(val1, head);
    head = cons(val2, head);
 
+   Value *val3 = talloc(sizeof(Value));
+   val3->type = PTR_TYPE;
+   val3->p = val2;
+
+   display(val3);
+
    tfree();
    printf("I can see this.\n");
    Value *val5 = talloc(sizeof(Value));
