@@ -34,6 +34,7 @@ Value *consMakeNull(){
 */
 bool tallocIsNull(Value *value){
    assert(value != NULL);
+    //printf("%p \n", value);
 	return (value->type == NULL_TYPE);
 }
 
