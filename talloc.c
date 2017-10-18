@@ -12,6 +12,7 @@
 #ifndef TALLOC_H
 #define TALLOC_H
 
+//Global variables to maintain active list of pointers
 static Value *head;
 static bool initialized = false;
 
@@ -33,26 +34,28 @@ Value *tallocMakeNull(){
 * Return 1 if true (is NULL_TYPE), otherwise return 0
 */
 bool tallocIsNull(Value *value){
-   assert(value != NULL);
-	return (value->type == NULL_TYPE);
+    assert(value != NULL);
+    return (value->type == NULL_TYPE);
 }
 
 /*
 * Return the car value of a given list.
 */
 Value *tallocCar(Value *list){
-   assert(!tallocIsNull(list));
-	assert(list->type == CONS_TYPE);
-	return (list->c.car);
+    assert(!tallocIsNull(list));
+    assert(list->type == CONS_TYPE);
+    assert(list->c.car != NULL);
+    return (list->c.car);
 }
 
 /*
 * Return the cdr value of a given list.
 */
 Value *tallocCdr(Value *list){
-   assert(!tallocIsNull(list));
-	assert(list->type == CONS_TYPE);
-	return (list->c.cdr);
+    assert(!tallocIsNull(list));
+    assert(list->type == CONS_TYPE);
+    assert(list->c.cdr != NULL);
+    return (list->c.cdr);
 }
 
 /*
@@ -66,59 +69,57 @@ Value *tallocCons(Value *car, Value *cdr) {
    return list;
 }
 
-
 /*
- * A malloc-like function that allocates memory, tracking all allocated
- * pointers in the "active list."  (You can choose your implementation of the
- * active list, but whatever it is, your talloc code should NOT call functions
- * in linkedlist.h; instead, implement any list-like behavior directly here.
- * Otherwise you'll end up with circular dependencies, since you're going to
- * modify the linked list to use talloc instead of malloc.)
- */
+* A malloc-like function that allocates memory, tracking all allocated
+* pointers in the "active list."  (You can choose your implementation of the
+* active list, but whatever it is, your talloc code should NOT call functions
+* in linkedlist.h; instead, implement any list-like behavior directly here.
+* Otherwise you'll end up with circular dependencies, since you're going to
+* modify the linked list to use talloc instead of malloc.)
+*/
 void *talloc(size_t size){
     if(!initialized){
         head = tallocMakeNull();
         initialized = true;
     }
-    Value *newValue = malloc(size);
+    void *newBlock = malloc(size);
     Value *newPointer = tallocMakeNull();
     newPointer->type = PTR_TYPE;
-    newPointer->p = newValue;
+    newPointer->p = newBlock;
     Value *temp = tallocCons(newPointer, head);
     head = temp;
-    return newValue;
+    return newBlock;
 }
 
 /*
- * A helper function for tfree() - uses recursion to free the active list
- */
+* A helper function for tfree() - uses recursion to free the active list
+*/
 void tfreeHelper(Value *list){
-   if(list->type == CONS_TYPE){
-      free(tallocCar(list)->p);
-      free(tallocCar(list));
-      tfreeHelper(tallocCdr(list));
-      free(list);
-   } else{
-      free(list);
-   }
+    if(list->type == CONS_TYPE){
+        free(tallocCar(list)->p);
+        free(tallocCar(list));
+        tfreeHelper(tallocCdr(list));
+        free(list);
+    } else{
+        free(list);
+    }
 }
 
 /*
- * Free all pointers allocated by talloc, as well as whatever memory you
- * malloc'ed to create/update the active list.
- */
-
+* Free all pointers allocated by talloc, as well as whatever memory you
+* malloc'ed to create/update the active list.
+*/
 void tfree(){
     initialized = false;
     tfreeHelper(head);
 }
 
 /*
- * A simple two-line function to stand in the C function "exit", which calls
- * tfree() and then exit().  (You'll use this later to allow a clean exit from
- * your interpreter when you encounter an error: so memory can be automatically
- * cleaned up when exiting.)
- */
+* A simple two-line function to stand in the C function "exit", which calls
+* tfree() and then exit().  (You'll use this later to allow a clean exit from
+* your interpreter when you encounter an error: so memory can be automatically
+* cleaned up when exiting.)
+*/
 void texit(int status){
     tfree();
     exit(status);
