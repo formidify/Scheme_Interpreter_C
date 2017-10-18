@@ -18,7 +18,7 @@ static bool initialized = false;
 /*
 * Create and return an empty list (a new Value object of type NULL_TYPE).
 */
-Value *consMakeNull(){
+Value *tallocMakeNull(){
    Value *list = malloc(sizeof(Value));
    if(!list){
       printf("Out of memory\n");
@@ -34,7 +34,6 @@ Value *consMakeNull(){
 */
 bool tallocIsNull(Value *value){
    assert(value != NULL);
-    //printf("%p \n", value);
 	return (value->type == NULL_TYPE);
 }
 
@@ -60,7 +59,7 @@ Value *tallocCdr(Value *list){
 * Create and return a nonempty list (a new Value object of type CONS_TYPE).
 */
 Value *tallocCons(Value *car, Value *cdr) {
-   Value *list = consMakeNull();
+   Value *list = tallocMakeNull();
    list->type = CONS_TYPE;
    list->c.car = car;
    list->c.cdr = cdr;
@@ -78,11 +77,11 @@ Value *tallocCons(Value *car, Value *cdr) {
  */
 void *talloc(size_t size){
     if(!initialized){
-        head = consMakeNull();
+        head = tallocMakeNull();
         initialized = true;
     }
     Value *newValue = malloc(size);
-    Value *newPointer = consMakeNull();
+    Value *newPointer = tallocMakeNull();
     newPointer->type = PTR_TYPE;
     newPointer->p = newValue;
     Value *temp = tallocCons(newPointer, head);
