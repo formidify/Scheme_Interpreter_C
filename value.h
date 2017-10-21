@@ -7,7 +7,11 @@ typedef enum {
    DOUBLE_TYPE,
    STR_TYPE,
    CONS_TYPE,
-   NULL_TYPE
+   NULL_TYPE,
+   OPEN_TYPE,
+   CLOSE_TYPE,
+   BOOL_TYPE,
+   SYMBOL_TYPE
 } valueType;
 
 struct Value {
@@ -17,6 +21,7 @@ struct Value {
       int i;
       double d;
       char *s;
+      bool b;
       struct ConsCell {
          struct Value *car;
          struct Value *cdr;
