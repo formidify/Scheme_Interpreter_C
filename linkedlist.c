@@ -39,6 +39,15 @@ Value *cons(Value *car, Value *cdr) {
 void displayHelper(Value *list){
     assert(list != NULL);
     switch(list->type) {
+        case OPEN_TYPE:
+            printf("%s", "(");
+            break;
+        case CLOSE_TYPE:
+            printf("%s", ")");
+            break;
+        case BOOL_TYPE:
+            printf("%d", list->b);
+            break;
         case INT_TYPE:
             printf("%i", list->i);
             break;

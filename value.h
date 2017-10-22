@@ -1,5 +1,6 @@
 #ifndef VALUE_H
 #define VALUE_H
+#include <stdbool.h>
 
 typedef enum {
    PTR_TYPE,

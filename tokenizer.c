@@ -1,9 +1,9 @@
 #include <stdlib.h>
-#include <stdin.h>
 #include <stdio.h>
 #include "value.h"
 #include <assert.h>
 #include "tokenizer.h"
+#include "linkedlist.h"
 
 // function should read stdin in its entireity
 // and return a linked list consisting of all
@@ -11,34 +11,37 @@
 // https://www.cs.bu.edu/teaching/c/file-io/intro/
 // boolean, integer, float, string, symbol, open, close
 
-bool Digit?(char){
-    return (char == 0 || char == 1 || char == 2 ||
-            char == 3 || char == 4 || char == 5 ||
-            char == 6 || char == 7 || char == 8 ||
-            char == 9)
+bool isDigit(char c){
+    return (c == 0 || c == 1 || c == 2 ||
+            c == 3 || c == 4 || c == 5 ||
+            c == 6 || c == 7 || c == 8 ||
+            c == 9);
 }
 
-bool Letter?(char){
-    return (char == "a" || char == "i" || char == "q" ||
-            char == "b" || char == "j" || char == "r" ||
-            char == "c" || char == "k" || char == "s" ||
-            char == "d" || char == "l" || char == "t" ||
-            char == "e" || char == "m" || char == "u" ||
-            char == "f" || char == "n" || char == "v" ||
-            char == "g" || char == "o" || char == "w" ||
-            char == "h" || char == "p" || char == "x" ||
-            char == "y" || char == "z" || char == "A" ||
-            char == "B" || char == "J" || char == "R" ||
-            char == "C" || char == "K" || char == "S" ||
-            char == "D" || char == "L" || char == "T" ||
-            char == "E" || char == "M" || char == "U" ||
-            char == "F" || char == "N" || char == "V" ||
-            char == "G" || char == "O" || char == "W" ||
-            char == "H" || char == "P" || char == "X" ||
-            char == "I" || char == "Q" || char == "Y" ||
-            char == "Z")
+bool isLetter(char c){
+    return (c == 'a' || c == 'i' || c == 'q' ||
+            c == 'b' || c == 'j' || c == 'r' ||
+            c == 'c' || c == 'k' || c == 's' ||
+            c == 'd' || c == 'l' || c == 't' ||
+            c == 'e' || c == 'm' || c == 'u' ||
+            c == 'f' || c == 'n' || c == 'v' ||
+            c == 'g' || c == 'o' || c == 'w' ||
+            c == 'h' || c == 'p' || c == 'x' ||
+            c == 'y' || c == 'z' || c == 'A' ||
+            c == 'B' || c == 'J' || c == 'R' ||
+            c == 'C' || c == 'K' || c == 'S' ||
+            c == 'D' || c == 'L' || c == 'T' ||
+            c == 'E' || c == 'M' || c == 'U' ||
+            c == 'F' || c == 'N' || c == 'V' ||
+            c == 'G' || c == 'O' || c == 'W' ||
+            c == 'H' || c == 'P' || c == 'X' ||
+            c == 'I' || c == 'Q' || c == 'Y' ||
+            c == 'Z');
 }
 
+bool isSymbol(char c){
+    return false;
+}
 // open close bool have been implemented
 // confused about what he said about list in
 //  syntax detail
@@ -48,25 +51,25 @@ Value *tokenize(){
     Value *list = makeNull();
     charRead = fgetc(stdin);
     while (charRead != EOF){
-        if (charRead == "("){
+        if (charRead == '('){
             Value *openType = makeNull();
             openType->type = OPEN_TYPE;
             list = cons(openType, list);
-        }else if (charRead == ")"){
+        }else if (charRead == ')'){
             Value *closeType = makeNull();
-            closeType-> = CLOSE_TYPE;
-            list = cons(openType, list);
-        }else if (charRead == "#"){
+            closeType->type = CLOSE_TYPE;
+            list = cons(closeType, list);
+        }else if (charRead == '#'){
             charRead = fgetc(stdin);
-            temp = charRead;
-            if (charRead == "t" || charRead == "f") {
+            char temp = charRead;
+            if (charRead == 't' || charRead == 'f') {
                 charRead = fgetc(stdin);
-                if (charRead == "(" || charRead == ")" ||
-                    charRead == " ") {
-                    charRead = ungetc(stdin);
+                if (charRead == '(' || charRead == ')' ||
+                    charRead == ' ') {
+                    charRead = ungetc(charRead, stdin);
                     Value *boolType = makeNull();
                     boolType->type = BOOL_TYPE;
-                    if (temp == "f"){
+                    if (temp == 'f'){
                         boolType->b = false;
                     } else {
                         boolType->b = true;
@@ -81,10 +84,9 @@ Value *tokenize(){
                 texit(0);
             }
         }else if (charRead ){
-            
-        }else if ()
+
         }else{
-            
+
         }
         charRead = fgetc(stdin);
     }
@@ -93,6 +95,34 @@ Value *tokenize(){
 
 
 // The displayTokens function takes a linked
-// list of tokens as input, and displays those 
+// list of tokens as input, and displays those
 // tokens, one per line, with each token's type.
-void displayTokens(Value *list);
+void displayTokens(Value *list){
+    assert(list != NULL);
+    switch(list->type) {
+        case OPEN_TYPE:
+            printf("%s:open", "(");
+            break;
+        case CLOSE_TYPE:
+            printf("%s:close", ")");
+            break;
+        case BOOL_TYPE:
+            if(list->b){
+                printf("#t:boolean");
+            } else{
+                printf("#f:boolean");
+            }
+
+            break;
+        case CONS_TYPE:
+            displayTokens(list->c.car);
+            if(cdr(list)->type != NULL_TYPE){
+                printf("\n");
+            }
+            displayTokens(list->c.cdr);
+            break;
+        default:
+            printf("\n");
+            break;
+    }
+}
