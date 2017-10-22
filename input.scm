@@ -1,1 +1,1 @@
-(+ #t symbol)
+(+ #t "hello")
