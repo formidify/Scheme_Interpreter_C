@@ -21,37 +21,38 @@ bool isDigit(char c){
 }
 
 bool isLetter(char c){
-    return (c == 'a' || c == 'i' || c == 'q' ||
-            c == 'b' || c == 'j' || c == 'r' ||
-            c == 'c' || c == 'k' || c == 's' ||
-            c == 'd' || c == 'l' || c == 't' ||
-            c == 'e' || c == 'm' || c == 'u' ||
-            c == 'f' || c == 'n' || c == 'v' ||
-            c == 'g' || c == 'o' || c == 'w' ||
-            c == 'h' || c == 'p' || c == 'x' ||
-            c == 'y' || c == 'z' || c == 'A' ||
-            c == 'B' || c == 'J' || c == 'R' ||
-            c == 'C' || c == 'K' || c == 'S' ||
-            c == 'D' || c == 'L' || c == 'T' ||
-            c == 'E' || c == 'M' || c == 'U' ||
-            c == 'F' || c == 'N' || c == 'V' ||
-            c == 'G' || c == 'O' || c == 'W' ||
-            c == 'H' || c == 'P' || c == 'X' ||
-            c == 'I' || c == 'Q' || c == 'Y' ||
-            c == 'Z');
+	return (c == 'a' || c == 'i' || c == 'q' ||
+			c == 'b' || c == 'j' || c == 'r' ||
+			c == 'c' || c == 'k' || c == 's' ||
+			c == 'd' || c == 'l' || c == 't' ||
+			c == 'e' || c == 'm' || c == 'u' ||
+			c == 'f' || c == 'n' || c == 'v' ||
+			c == 'g' || c == 'o' || c == 'w' ||
+			c == 'h' || c == 'p' || c == 'x' ||
+			c == 'y' || c == 'z' || c == 'A' ||
+			c == 'B' || c == 'J' || c == 'R' ||
+			c == 'C' || c == 'K' || c == 'S' ||
+			c == 'D' || c == 'L' || c == 'T' ||
+			c == 'E' || c == 'M' || c == 'U' ||
+			c == 'F' || c == 'N' || c == 'V' ||
+			c == 'G' || c == 'O' || c == 'W' ||
+			c == 'H' || c == 'P' || c == 'X' ||
+			c == 'I' || c == 'Q' || c == 'Y' ||
+			c == 'Z');
 }
 
 bool isInitial(char c){
-    return (isLetter(c) || c == '!' || c == '$' ||
-            c == '%' || c == '&' || c == '*' ||
-            c == '/' || c == ':' || c == '<' ||
-            c == '=' || c == '>' || c == '?' ||
-            c == '~' || c == '_' || c == '^');
+	return (isLetter(c) || c == '!' || c == '$' ||
+			c == '%' || c == '&' || c == '*' ||
+			c == '/' || c == ':' || c == '<' ||
+			c == '=' || c == '>' || c == '?' ||
+			c == '~' || c == '_' || c == '^');
 }
 
+
 bool isSubsequent(char c){
-    return (isInitial(c) || isDigit(c) || c == '.' ||
-            c == '+' || c == '-');
+	return (isInitial(c) || isDigit(c) || c == '.' ||
+			c == '+' || c == '-');
 }
 
 Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
@@ -129,6 +130,7 @@ Value *tokenizeSymbol(char charRead){
 Value *tokenize(){
     char charRead;
     Value *list = makeNull();
+	bool init = false;
     charRead = fgetc(stdin);
     while (charRead != EOF){
         if (charRead == '('){
@@ -194,8 +196,34 @@ Value *tokenize(){
         } else if(isInitial(charRead)){
             Value *symbolType = tokenizeSymbol(charRead);
             list = cons(symbolType, list);
-        } else{
-
+	//changes made by Chae. No other changes except bool init = false;
+	// in beginning of function
+        } else if(charRead == '"' && init == false){
+			init = true;
+			//char *string;
+			int acc = 1;
+			long int cur = ftell(stdin);
+			charRead = fgetc(stdin);
+			while (charRead != EOF || (charRead != '"' && init == true)){
+				acc += 1;
+				charRead = fgetc(stdin);
+			}
+			if (charRead == EOF){
+				printf("Err: Quotations do not pair up");
+				texit(0);
+			}else if(charRead == '"' && init == true){
+				fseek(stdin, cur, 0);
+				char *string[acc + 2];
+				for (int i = 0; i < acc + 1; i++){
+					string[i] = fgetc(stdin);
+				}
+				string[i+1] = '\0';
+				init = false;
+				Value *strType = makeNull();
+				strType->type = STR_TYPE;
+				strType->s = string;
+				list = cons(strType, list);
+			}
         }
         charRead = fgetc(stdin);
     }
