@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "tokenizer.h"
 #include "linkedlist.h"
+#include <string.h>
 
 // function should read stdin in its entireity
 // and return a linked list consisting of all
@@ -39,8 +40,17 @@ bool isLetter(char c){
             c == 'Z');
 }
 
-bool isSymbol(char c){
-    return false;
+bool isInitial(char c){
+    return (isLetter(c) || c == '!' || c == '$' ||
+            c == '%' || c == '&' || c == '*' ||
+            c == '/' || c == ':' || c == '<' ||
+            c == '=' || c == '>' || c == '?' ||
+            c == '~' || c == '_' || c == '^');
+}
+
+bool isSubsequent(char c){
+    return (isInitial(c) || isDigit(c) || c == '.' ||
+            c == '+' || c == '-');
 }
 // open close bool have been implemented
 // confused about what he said about list in
@@ -55,11 +65,11 @@ Value *tokenize(){
             Value *openType = makeNull();
             openType->type = OPEN_TYPE;
             list = cons(openType, list);
-        }else if (charRead == ')'){
+        } else if (charRead == ')'){
             Value *closeType = makeNull();
             closeType->type = CLOSE_TYPE;
             list = cons(closeType, list);
-        }else if (charRead == '#'){
+        } else if (charRead == '#'){
             charRead = fgetc(stdin);
             char temp = charRead;
             if (charRead == 't' || charRead == 'f') {
@@ -83,9 +93,51 @@ Value *tokenize(){
                 printf("Tokenization error: # is not a valid symbol.");
                 texit(0);
             }
-        }else if (charRead ){
-
-        }else{
+        } else if(charRead == '+'){
+            charRead = fgetc(stdin);
+            if (charRead == '(' || charRead == ')' ||
+                charRead == ' ') {
+                charRead = ungetc(charRead, stdin);
+                Value *symbolType = makeNull();
+                symbolType->type = SYMBOL_TYPE;
+                symbolType->s = "+";
+                list = cons(symbolType, list);
+            }
+        } else if(charRead == '-'){
+            charRead = fgetc(stdin);
+            if (charRead == '(' || charRead == ')' ||
+                charRead == ' ') {
+                charRead = ungetc(charRead, stdin);
+                Value *symbolType = makeNull();
+                symbolType->type = SYMBOL_TYPE;
+                symbolType->s = "-";
+                list = cons(symbolType, list);
+            }
+        } else if(isInitial(charRead)){
+            char *symbol = talloc(sizeof(char) * 2);
+            symbol[0] = charRead;
+            symbol[1] = '\0';
+            charRead = fgetc(stdin);
+            while(charRead != EOF && charRead != '(' &&
+                charRead != ')' && charRead != ' '){
+                    if(isSubsequent(charRead)){
+                        size_t length = strlen(symbol);
+                        char *tempSymbol = talloc(length + 2);
+                        strcpy(tempSymbol, symbol);
+                        tempSymbol[length] = charRead;
+                        tempSymbol[length + 1] = '\0';
+                        symbol = tempSymbol;
+                        charRead = fgetc(stdin);
+                    } else {
+                        printf("Tokenization error.");
+                        texit(0);
+                    }
+            }
+            Value *symbolType = makeNull();
+            symbolType->type = SYMBOL_TYPE;
+            symbolType->s = symbol;
+            list = cons(symbolType, list);
+        } else{
 
         }
         charRead = fgetc(stdin);
@@ -112,7 +164,9 @@ void displayTokens(Value *list){
             } else{
                 printf("#f:boolean");
             }
-
+            break;
+        case SYMBOL_TYPE:
+            printf("%s:symbol", list->s);
             break;
         case CONS_TYPE:
             displayTokens(list->c.car);
