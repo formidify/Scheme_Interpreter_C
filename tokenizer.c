@@ -52,6 +52,68 @@ bool isSubsequent(char c){
     return (isInitial(c) || isDigit(c) || c == '.' ||
             c == '+' || c == '-');
 }
+
+Value *isNumber(Value *list, bool didSign, bool didDot){
+    int resultNumber;
+    char numberString[];
+    int i;
+    if (didSign) {
+        numberString[i] = charRead;
+        charRead = fgetc(stdin);
+        i ++;
+    }
+    //since dot must be followed by an integer
+    if (didDot) {
+        lookAhead = fgetc(stdin);
+        if (!isDigit){
+            printf("Tokenization error: dot must be followed by a digit.");
+            texit(0);
+        }
+        ungetc(lookAhead, stdin);
+    }
+    charRead = fgetc(stdin);
+    while (charRead != EOF && charRead != '(' &&
+            charRead != '(' && charRead != ' ') {
+            if ((charRead == '+' || charRead == '-')
+            || (didDot && charRead == '.')
+            || (isInitial(charRead))) {
+                printf("Tokenization error: numbers cannot be parsed with symbols.");
+                texit(0);
+            }
+            else if (charRead == '.'){
+                numberString[i] = charRead;
+                i ++;
+                isDot = true;
+                lookAhead = fgetc(stdin);
+                if (!isDigit){
+                    printf("Tokenization error: dot must be followed by a digit.");
+                    texit(0);
+                }
+                ungetc(lookAhead, stdin);
+            }
+            else if(isDigit(charRead)){
+                numberString[i] = charRead;
+                i ++;
+            }
+            charRead = fgetc(stlin);
+
+        }
+        ungetc(charRead, stdin); //not sure if can ungetc an EOF
+        Value *numberType = makeNull();
+        if (didDot){
+            resultNumber = sscanf(numberString, "%f")
+            numberType->type = DOUBLE_TYPE;
+            numberType->d = resultNumber;
+        }
+        else{
+            resultNumber = sscanf(numberString, "%d")
+            numberType->type = INT_TYPE;
+            numberType->i = resultNumber;
+        }
+        list = cons(numberType, list);
+        return list;
+}
+
 // open close bool have been implemented
 // confused about what he said about list in
 //  syntax detail
@@ -94,6 +156,7 @@ Value *tokenize(){
                 texit(0);
             }
         } else if(charRead == '+'){
+            char sign = charRead;
             charRead = fgetc(stdin);
             if (charRead == '(' || charRead == ')' ||
                 charRead == ' ') {
@@ -103,6 +166,29 @@ Value *tokenize(){
                 symbolType->s = "+";
                 list = cons(symbolType, list);
             }
+            else {
+                ungetc(charRead, stdin);
+                ungetc(sign, stdin); //pushes it back so it's readable next time
+                isNumber(list, true, false);
+            }
+
+        }else if(isDigit(charRead)){
+            int integer = charRead; //not sure if can be declared this way
+            charRead = fgetc(stdin);
+            if (charRead == '(' || charRead == ')' ||
+                charRead == ' ') {
+                charRead = ungetc(charRead, stdin);
+                Value *intType = makeNull();
+                intType->type = INT_TYPE;
+                intType->i = integer;
+                list = cons(intType, list);
+            }
+            else{
+                ungetc(charRead, stdin); //do we need to assign ungetc() to something?
+                ungetc(integer, stdin); //place the number back into the stack
+                isNumber(list, false, false)
+            }
+        }
         } else if(charRead == '-'){
             charRead = fgetc(stdin);
             if (charRead == '(' || charRead == ')' ||
@@ -113,6 +199,23 @@ Value *tokenize(){
                 symbolType->s = "-";
                 list = cons(symbolType, list);
             }
+            else {
+                ungetc(charRead, stdin);
+                ungetc(sign, stdin);
+                isNumber(list, true, false);
+            }
+
+        } else if(charRead == "."){
+            charRead = fgetc(stdin);
+            if (isDigit(charRead)) {
+                charRead = ungetc(charRead, stdin);
+                isNumber(list, false, true);
+            }
+            else{
+                printf("Tokenization error: '.' cannot be followed by non-digits.")
+                texit(0);
+            }
+        }
         } else if(isInitial(charRead)){
             char *symbol = talloc(sizeof(char) * 2);
             symbol[0] = charRead;
