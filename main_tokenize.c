@@ -4,6 +4,7 @@
 #include "tokenizer.h"
 #include "linkedlist.h"
 #include <string.h>
+#include "vector.h"
 
 int main(void) {
    Value *list = tokenize();

@@ -1,8 +1,8 @@
 CC = clang
 CFLAGS = -g
 
-SRCS = linkedlist.c talloc.c main_tokenize.c tokenizer.c
-HDRS = linkedlist.h value.h talloc.h tokenizer.h
+SRCS = linkedlist.c talloc.c vector.c main_tokenize.c tokenizer.c
+HDRS = vector.h linkedlist.h value.h talloc.h tokenizer.h
 OBJS = $(SRCS:.c=.o)
 
 tokenizer: $(OBJS)

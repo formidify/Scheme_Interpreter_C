@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "value.h"
+#include "vector.h"
 #include <assert.h>
 #include "tokenizer.h"
 #include "linkedlist.h"
@@ -13,10 +14,10 @@
 // boolean, integer, float, string, symbol, open, close
 
 bool isDigit(char c){
-    return (c == 0 || c == 1 || c == 2 ||
-            c == 3 || c == 4 || c == 5 ||
-            c == 6 || c == 7 || c == 8 ||
-            c == 9);
+    return (c == '0' || c == '1' || c == '2' ||
+            c == '3' || c == '4' || c == '5' ||
+            c == '6' || c == '7' || c == '8' ||
+            c == '9');
 }
 
 bool isLetter(char c){
@@ -53,71 +54,78 @@ bool isSubsequent(char c){
             c == '+' || c == '-');
 }
 
-Value *isNumber(Value *list, bool didSign, bool didDot){
-    int resultNumber;
-    char numberString[];
-    int i;
-    if (didSign) {
-        numberString[i] = charRead;
+Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
+    Vector *number = talloc(sizeof(Vector));
+    init(number, 1);
+    add(number, 0, '\0');
+
+    if(hasSign){
+        add(number, number->size - 1, charRead);
         charRead = fgetc(stdin);
-        i ++;
     }
-    //since dot must be followed by an integer
-    if (didDot) {
-        lookAhead = fgetc(stdin);
-        if (!isDigit){
-            printf("Tokenization error: dot must be followed by a digit.");
+
+    if(hasDot){
+        char lookAhead = fgetc(stdin);
+        if(!isDigit(lookAhead)){
+            printf("Tokenization error: dot must be followed by a digit.\n");
             texit(0);
         }
         ungetc(lookAhead, stdin);
+        add(number, number->size - 1, charRead);
+        charRead = fgetc(stdin);
     }
-    charRead = fgetc(stdin);
-    while (charRead != EOF && charRead != '(' &&
-            charRead != '(' && charRead != ' ') {
-            if ((charRead == '+' || charRead == '-')
-            || (didDot && charRead == '.')
-            || (isInitial(charRead))) {
-                printf("Tokenization error: numbers cannot be parsed with symbols.");
+
+    while(charRead != EOF && charRead != '(' &&
+        charRead != ')' && charRead != ' '){
+            if(isDigit(charRead)){
+                add(number, number->size - 1, charRead);
+                charRead = fgetc(stdin);
+            } else if(charRead == '.' && !hasDot){
+                add(number, number->size - 1, charRead);
+                hasDot = true;
+                charRead = fgetc(stdin);
+            }else {
+                printf("Tokenization error, unrecognized symbol in number.\n");
                 texit(0);
             }
-            else if (charRead == '.'){
-                numberString[i] = charRead;
-                i ++;
-                isDot = true;
-                lookAhead = fgetc(stdin);
-                if (!isDigit){
-                    printf("Tokenization error: dot must be followed by a digit.");
-                    texit(0);
-                }
-                ungetc(lookAhead, stdin);
-            }
-            else if(isDigit(charRead)){
-                numberString[i] = charRead;
-                i ++;
-            }
-            charRead = fgetc(stlin);
+    }
 
-        }
-        ungetc(charRead, stdin); //not sure if can ungetc an EOF
-        Value *numberType = makeNull();
-        if (didDot){
-            resultNumber = sscanf(numberString, "%f")
-            numberType->type = DOUBLE_TYPE;
-            numberType->d = resultNumber;
-        }
-        else{
-            resultNumber = sscanf(numberString, "%d")
-            numberType->type = INT_TYPE;
-            numberType->i = resultNumber;
-        }
-        list = cons(numberType, list);
-        return list;
+    ungetc(charRead, stdin);
+    Value *numberType = makeNull();
+
+    if(hasDot){
+        numberType->type = DOUBLE_TYPE;
+        numberType->d = atof(number->data);
+    } else{
+        numberType->type = INT_TYPE;
+        numberType->i = atoi(number->data);
+    }
+    return numberType;
 }
 
-// open close bool have been implemented
-// confused about what he said about list in
-//  syntax detail
-// confused about string escape characters
+Value *tokenizeSymbol(char charRead){
+    Vector *symbol = talloc(sizeof(Vector));
+    init(symbol, 2);
+    add(symbol, 0, charRead);
+    add(symbol, 1, '\0');
+    charRead = fgetc(stdin);
+    while(charRead != EOF && charRead != '(' &&
+        charRead != ')' && charRead != ' '){
+            if(isSubsequent(charRead)){
+                add(symbol, symbol->size - 1, charRead);
+                charRead = fgetc(stdin);
+            } else {
+                printf("Tokenization error, invalid symbol.\n");
+                texit(0);
+            }
+    }
+    ungetc(charRead, stdin);
+    Value *symbolType = makeNull();
+    symbolType->type = SYMBOL_TYPE;
+    symbolType->s = symbol->data;
+    return symbolType;
+}
+
 Value *tokenize(){
     char charRead;
     Value *list = makeNull();
@@ -148,97 +156,43 @@ Value *tokenize(){
                     }
                     list = cons(boolType, list);
                 } else {
-                   printf("Tokenization error: # is not a valid symbol.");
+                   printf("Tokenization error: # is not a valid symbol.\n");
                     texit(0);
                 }
             } else {
-                printf("Tokenization error: # is not a valid symbol.");
+                printf("Tokenization error: # is not a valid symbol.\n");
                 texit(0);
             }
-        } else if(charRead == '+'){
+        } else if(charRead == '-' || charRead == '+'){
             char sign = charRead;
             charRead = fgetc(stdin);
-            if (charRead == '(' || charRead == ')' ||
-                charRead == ' ') {
-                charRead = ungetc(charRead, stdin);
+            if (charRead == EOF || charRead == '('
+            || charRead == ')' || charRead == ' ') {
+                ungetc(charRead, stdin);
                 Value *symbolType = makeNull();
                 symbolType->type = SYMBOL_TYPE;
-                symbolType->s = "+";
+                if(sign == '-'){
+                    symbolType->s = "-";
+                } else {
+                    symbolType->s = "+";
+                }
                 list = cons(symbolType, list);
-            }
-            else {
+            } else if(isDigit(charRead) || charRead == '.'){
                 ungetc(charRead, stdin);
-                ungetc(sign, stdin); //pushes it back so it's readable next time
-                isNumber(list, true, false);
-            }
-
-        }else if(isDigit(charRead)){
-            int integer = charRead; //not sure if can be declared this way
-            charRead = fgetc(stdin);
-            if (charRead == '(' || charRead == ')' ||
-                charRead == ' ') {
-                charRead = ungetc(charRead, stdin);
-                Value *intType = makeNull();
-                intType->type = INT_TYPE;
-                intType->i = integer;
-                list = cons(intType, list);
-            }
-            else{
-                ungetc(charRead, stdin); //do we need to assign ungetc() to something?
-                ungetc(integer, stdin); //place the number back into the stack
-                isNumber(list, false, false)
-            }
-        }
-        } else if(charRead == '-'){
-            charRead = fgetc(stdin);
-            if (charRead == '(' || charRead == ')' ||
-                charRead == ' ') {
-                charRead = ungetc(charRead, stdin);
-                Value *symbolType = makeNull();
-                symbolType->type = SYMBOL_TYPE;
-                symbolType->s = "-";
-                list = cons(symbolType, list);
-            }
-            else {
-                ungetc(charRead, stdin);
-                ungetc(sign, stdin);
-                isNumber(list, true, false);
-            }
-
-        } else if(charRead == "."){
-            charRead = fgetc(stdin);
-            if (isDigit(charRead)) {
-                charRead = ungetc(charRead, stdin);
-                isNumber(list, false, true);
-            }
-            else{
-                printf("Tokenization error: '.' cannot be followed by non-digits.")
+                Value *numberType = tokenizeNumber(sign, true, (charRead == '.'));
+                list = cons(numberType, list);
+            } else {
+                printf("Tokenization error, character - or + not symbol or number.\n");
                 texit(0);
             }
-        }
+        } else if(charRead == '.'){
+            Value *numberType = tokenizeNumber(charRead, false, true);
+            list = cons(numberType, list);
+        } else if(isDigit(charRead)){
+            Value *numberType = tokenizeNumber(charRead, false, false);
+            list = cons(numberType, list);
         } else if(isInitial(charRead)){
-            char *symbol = talloc(sizeof(char) * 2);
-            symbol[0] = charRead;
-            symbol[1] = '\0';
-            charRead = fgetc(stdin);
-            while(charRead != EOF && charRead != '(' &&
-                charRead != ')' && charRead != ' '){
-                    if(isSubsequent(charRead)){
-                        size_t length = strlen(symbol);
-                        char *tempSymbol = talloc(length + 2);
-                        strcpy(tempSymbol, symbol);
-                        tempSymbol[length] = charRead;
-                        tempSymbol[length + 1] = '\0';
-                        symbol = tempSymbol;
-                        charRead = fgetc(stdin);
-                    } else {
-                        printf("Tokenization error.");
-                        texit(0);
-                    }
-            }
-            Value *symbolType = makeNull();
-            symbolType->type = SYMBOL_TYPE;
-            symbolType->s = symbol;
+            Value *symbolType = tokenizeSymbol(charRead);
             list = cons(symbolType, list);
         } else{
 
@@ -270,6 +224,12 @@ void displayTokens(Value *list){
             break;
         case SYMBOL_TYPE:
             printf("%s:symbol", list->s);
+            break;
+        case INT_TYPE:
+            printf("%d:integer", list->i);
+            break;
+        case DOUBLE_TYPE:
+            printf("%f:float", list->d);
             break;
         case CONS_TYPE:
             displayTokens(list->c.car);
