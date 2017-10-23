@@ -55,6 +55,13 @@ bool isSubsequent(char c){
     c == '+' || c == '-');
 }
 
+/*
+*bool isEscape(char *c){
+*	return (c == '\'' || c == '\"' || c == '\t' ||
+*			c == '\n' || c == '\\')
+*}
+*/
+
 Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
     Vector *number = talloc(sizeof(Vector));
     init(number, 1);
@@ -130,7 +137,6 @@ Value *tokenizeSymbol(char charRead){
 Value *tokenize(){
     char charRead;
     Value *list = makeNull();
-    bool init = false;
     charRead = fgetc(stdin);
     while (charRead != EOF){
         if (charRead == '('){
@@ -196,34 +202,40 @@ Value *tokenize(){
         } else if(isInitial(charRead)){
             Value *symbolType = tokenizeSymbol(charRead);
             list = cons(symbolType, list);
-            //changes made by Chae. No other changes except bool init = false;
-            // in beginning of function
-        } else if(charRead == '\"' && init == false){
-            init = true;
-            //char *string;
-            int acc = 1;
-            long int cur = ftell(stdin);
-            charRead = fgetc(stdin);
-            while (charRead != EOF || (charRead != '"' && init == true)){
-                acc += 1;
+        } else if(charRead == '"'){
+            Vector *string = talloc(sizeof(Vector));
+            init(string, 1);
+            add(string, 0, '\0');
+			charRead = fgetc(stdin);
+            while(charRead != '"'){
+                if(charRead == '\\'){
+                    charRead = fgetc(stdin);
+                    if(charRead == 'n'){
+                        add(string, string->size - 1, '\n');
+                    } else if(charRead == 't'){
+                        add(string, string->size - 1, '\t');
+                    } else if(charRead == '\\'){
+                        add(string, string->size - 1, '\\');
+                    } else if(charRead == '\''){
+                        add(string, string->size - 1, '\'');
+                    } else if(charRead == '"'){
+                        add(string, string->size - 1, '"');
+                    } else{
+                        printf("Tokenization error, unallowed escape.\n");
+                        texit(0);
+                    }
+                } else if(charRead == EOF){
+                    printf("Tokenization error, missing second \".\n");
+                    texit(0);
+                } else{
+                    add(string, string->size - 1, charRead);
+                }
                 charRead = fgetc(stdin);
             }
-            if (charRead == EOF){
-                printf("Err: Quotations do not pair up");
-                texit(0);
-            }else if(charRead == '"' && init == true){
-                fseek(stdin, cur, 0);
-                char *string[acc + 2];
-                for (int i = 0; i < acc + 1; i++){
-                    string[i] = fgetc(stdin);
-                }
-                string[i+1] = '\0';
-                init = false;
-                Value *strType = makeNull();
-                strType->type = STR_TYPE;
-                strType->s = string;
-                list = cons(strType, list);
-            }
+			Value *strType = makeNull();
+			strType->type = STR_TYPE;
+			strType->s = string->data;
+            list = cons(strType, list);
         }
         charRead = fgetc(stdin);
     }
@@ -236,6 +248,7 @@ Value *tokenize(){
 // tokens, one per line, with each token's type.
 void displayTokens(Value *list){
     assert(list != NULL);
+	int n;
     switch(list->type) {
             case OPEN_TYPE:
             printf("%s:open", "(");
@@ -266,6 +279,9 @@ void displayTokens(Value *list){
             }
             displayTokens(list->c.cdr);
             break;
+		case STR_TYPE:
+			printf("\"%s\":string", list->s);
+			break;
         default:
             printf("\n");
             break;
