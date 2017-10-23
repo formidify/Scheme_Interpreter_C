@@ -1,0 +1,12 @@
+;;Returns a new binary search tree identical to bst but with integer v appearing in its proper location
+;;If v is already in the tree, return bst with no changes
+(define insert
+  (lambda (v bst)
+    (cond ((not (bst? bst)) #f)
+          ((null-bst? bst) (make-bst v (null-bst) (null-bst)))
+          ((< v (entry bst)) (make-bst (entry bst) (insert v (left bst)) (right bst)))
+          ((> v (entry bst)) (make-bst (entry bst) (left bst) (insert v (right bst))))
+          (else bst))))
+
+(check-equal? (postorder (quote 5 (10.23 () (+.4 () ())) (-8.9 (6 () (7 () ())) ()))) #f)
+(quote "Stri09\nng\"gggg")
