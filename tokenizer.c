@@ -188,13 +188,20 @@ Value *tokenizeString(){
         if(charRead == '\\'){
             charRead = fgetc(stdin);
             if(charRead == 'n'){
-                add(string, string->size - 1, '\n');
+                add(string, string->size - 1, '\\');
+				add(string, string->size - 1, 'n');
             } else if(charRead == 't'){
-                add(string, string->size - 1, '\t');
+                add(string, string->size - 1, '\\');
+				add(string, string->size - 1, 't');
             } else if(charRead == '\\'){
                 add(string, string->size - 1, '\\');
+				add(string, string->size - 1, '\\');
             } else if(charRead == '\''){
-                add(string, string->size - 1, '\'');
+                add(string, string->size - 1, '\\');
+				add(string, string->size - 1, '\'');
+			} else if(charRead == '\"'){
+                add(string, string->size - 1, '\\');
+				add(string, string->size - 1, '\"');
             } else if(charRead == '"'){
                 add(string, string->size - 1, '"');
             } else{
