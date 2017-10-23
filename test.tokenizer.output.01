@@ -1,0 +1,7 @@
+"This should be a string":string
+";This is a string,":string
+"What does this give me?\nhuhh?":string
+"\n my name is \t \\ \" '":string
+"":string
+" ":string
+"\n":string

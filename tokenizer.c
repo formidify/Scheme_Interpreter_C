@@ -270,13 +270,16 @@ void displayStr(Value *list){
 		}else if (list->s[i] == '\t'){
 			printf("\\t");
 		}else if (list->s[i] == '\''){
-			printf("\\'");
+			// originally thought this part should be printf("\\'")
+			// but when testing out on Dr.Racket input "\'" printed "'"
+			// and so modified to follow Dr.Racket
+			printf("\'");
 		}else if (list->s[i] == '\"'){
 			printf("\\\"");
 		}else if (list->s[i] == '\\'){
 			printf("\\\\");
 		}else{
-			printf("%c", list->s[i]);
+			printf("%c", list->s[i]);	
 		}
 		i++;
 	}
