@@ -246,6 +246,11 @@ Value *tokenize(){
         } else if(charRead == '"'){
             Value *strType = tokenizeString();
             list = cons(strType, list);
+        } else if(charRead == ';'){
+            charRead = fgetc(stdin);
+            while(charRead != '\n' && charRead != EOF){
+                charRead = fgetc(stdin);
+            }
         } else if(charRead != ' ' && charRead != EOF && charRead != '\n'){
             printf("Tokenization error, unknown symbol:%c\n", charRead);
             texit(0);
