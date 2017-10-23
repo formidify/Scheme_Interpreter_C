@@ -272,11 +272,11 @@ void displayStr(Value *list){
 		}else if (list->s[i] == '\''){
 			printf("\\'");
 		}else if (list->s[i] == '\"'){
-			printf("\\'");
+			printf("\\\"");
 		}else if (list->s[i] == '\\'){
 			printf("\\\\");
 		}else{
-			printf("%c", list->s[i]);	
+			printf("%c", list->s[i]);
 		}
 		i++;
 	}
