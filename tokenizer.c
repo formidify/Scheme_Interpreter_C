@@ -55,13 +55,6 @@ bool isSubsequent(char c){
     c == '+' || c == '-');
 }
 
-/*
-*bool isEscape(char *c){
-*	return (c == '\'' || c == '\"' || c == '\t' ||
-*			c == '\n' || c == '\\')
-*}
-*/
-
 Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
     Vector *number = talloc(sizeof(Vector));
     init(number, 1);
@@ -134,6 +127,94 @@ Value *tokenizeSymbol(char charRead){
     return symbolType;
 }
 
+Value *tokenizeBoolean(){
+    Value *boolType;
+    char charRead = fgetc(stdin);
+    if (charRead == 't' || charRead == 'f') {
+        char lookAhead = fgetc(stdin);
+        if (lookAhead == '(' || lookAhead == ')' ||
+            lookAhead == ' ' || lookAhead == EOF) {
+            ungetc(lookAhead, stdin);
+            boolType = makeNull();
+            boolType->type = BOOL_TYPE;
+            if (charRead == 'f'){
+                boolType->b = false;
+            } else {
+                boolType->b = true;
+            }
+        } else {
+            printf("Tokenization error: # is not a valid symbol.\n");
+            texit(0);
+        }
+    } else {
+        printf("Tokenization error: # is not a valid symbol.\n");
+        texit(0);
+    }
+    return boolType;
+}
+
+Value *tokenizeSign(char charRead){
+    Value *token;
+    char lookAhead = fgetc(stdin);
+    if (lookAhead == EOF || lookAhead == '('
+        || lookAhead == ')' || lookAhead == ' ') {
+        ungetc(lookAhead, stdin);
+        token = makeNull();
+        token->type = SYMBOL_TYPE;
+        if(charRead == '-'){
+            token->s = "-";
+        } else {
+            token->s = "+";
+        }
+        return token;
+    } else if(isDigit(lookAhead) || lookAhead == '.'){
+        bool isDot = (lookAhead == '.');
+        ungetc(lookAhead, stdin);
+        token = tokenizeNumber(charRead, true, isDot);
+        return token;
+    } else {
+        printf("Tokenization error, - or + not symbol or number.\n");
+        texit(0);
+        return token;
+    }
+}
+
+Value *tokenizeString(){
+    Vector *string = talloc(sizeof(Vector));
+    init(string, 1);
+    add(string, 0, '\0');
+    char charRead = fgetc(stdin);
+    while(charRead != '"'){
+        if(charRead == '\\'){
+            charRead = fgetc(stdin);
+            if(charRead == 'n'){
+                add(string, string->size - 1, '\n');
+            } else if(charRead == 't'){
+                add(string, string->size - 1, '\t');
+            } else if(charRead == '\\'){
+                add(string, string->size - 1, '\\');
+            } else if(charRead == '\''){
+                add(string, string->size - 1, '\'');
+            } else if(charRead == '"'){
+                add(string, string->size - 1, '"');
+            } else{
+                printf("Tokenization error, unallowed escape.\n");
+                texit(0);
+            }
+        } else if(charRead == EOF){
+            printf("Tokenization error, missing second \".\n");
+            texit(0);
+        } else{
+            add(string, string->size - 1, charRead);
+        }
+        charRead = fgetc(stdin);
+    }
+    Value *strType = makeNull();
+    strType->type = STR_TYPE;
+    strType->s = string->data;
+    return strType;
+}
+
 Value *tokenize(){
     char charRead;
     Value *list = makeNull();
@@ -148,51 +229,11 @@ Value *tokenize(){
             closeType->type = CLOSE_TYPE;
             list = cons(closeType, list);
         } else if (charRead == '#'){
-            charRead = fgetc(stdin);
-            char temp = charRead;
-            if (charRead == 't' || charRead == 'f') {
-                charRead = fgetc(stdin);
-                if (charRead == '(' || charRead == ')' ||
-                charRead == ' ') {
-                    charRead = ungetc(charRead, stdin);
-                    Value *boolType = makeNull();
-                    boolType->type = BOOL_TYPE;
-                    if (temp == 'f'){
-                        boolType->b = false;
-                    } else {
-                        boolType->b = true;
-                    }
-                    list = cons(boolType, list);
-                } else {
-                    printf("Tokenization error: # is not a valid symbol.\n");
-                    texit(0);
-                }
-            } else {
-                printf("Tokenization error: # is not a valid symbol.\n");
-                texit(0);
-            }
+            Value *boolType = tokenizeBoolean();
+            list = cons(boolType, list);
         } else if(charRead == '-' || charRead == '+'){
-            char sign = charRead;
-            charRead = fgetc(stdin);
-            if (charRead == EOF || charRead == '('
-            || charRead == ')' || charRead == ' ') {
-                ungetc(charRead, stdin);
-                Value *symbolType = makeNull();
-                symbolType->type = SYMBOL_TYPE;
-                if(sign == '-'){
-                    symbolType->s = "-";
-                } else {
-                    symbolType->s = "+";
-                }
-                list = cons(symbolType, list);
-            } else if(isDigit(charRead) || charRead == '.'){
-                ungetc(charRead, stdin);
-                Value *numberType = tokenizeNumber(sign, true, (charRead == '.'));
-                list = cons(numberType, list);
-            } else {
-                printf("Tokenization error, character - or + not symbol or number.\n");
-                texit(0);
-            }
+            Value *withSign = tokenizeSign(charRead);
+            list = cons(withSign, list);
         } else if(charRead == '.'){
             Value *numberType = tokenizeNumber(charRead, false, true);
             list = cons(numberType, list);
@@ -203,39 +244,11 @@ Value *tokenize(){
             Value *symbolType = tokenizeSymbol(charRead);
             list = cons(symbolType, list);
         } else if(charRead == '"'){
-            Vector *string = talloc(sizeof(Vector));
-            init(string, 1);
-            add(string, 0, '\0');
-			charRead = fgetc(stdin);
-            while(charRead != '"'){
-                if(charRead == '\\'){
-                    charRead = fgetc(stdin);
-                    if(charRead == 'n'){
-                        add(string, string->size - 1, '\n');
-                    } else if(charRead == 't'){
-                        add(string, string->size - 1, '\t');
-                    } else if(charRead == '\\'){
-                        add(string, string->size - 1, '\\');
-                    } else if(charRead == '\''){
-                        add(string, string->size - 1, '\'');
-                    } else if(charRead == '"'){
-                        add(string, string->size - 1, '"');
-                    } else{
-                        printf("Tokenization error, unallowed escape.\n");
-                        texit(0);
-                    }
-                } else if(charRead == EOF){
-                    printf("Tokenization error, missing second \".\n");
-                    texit(0);
-                } else{
-                    add(string, string->size - 1, charRead);
-                }
-                charRead = fgetc(stdin);
-            }
-			Value *strType = makeNull();
-			strType->type = STR_TYPE;
-			strType->s = string->data;
+            Value *strType = tokenizeString();
             list = cons(strType, list);
+        } else if(charRead != ' ' && charRead != EOF && charRead != '\n'){
+            printf("Tokenization error, unknown symbol:%c\n", charRead);
+            texit(0);
         }
         charRead = fgetc(stdin);
     }

@@ -2,6 +2,9 @@
 * By Tina Liu
 * Program implementing methods for a Vector struct in C,
 * which functions as a list.
+*
+* Modified for use by tokenizer -
+* now stores a char array instead of an int array
 */
 #include <stdio.h>
 #include <stdlib.h>
