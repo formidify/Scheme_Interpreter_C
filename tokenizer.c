@@ -188,20 +188,13 @@ Value *tokenizeString(){
         if(charRead == '\\'){
             charRead = fgetc(stdin);
             if(charRead == 'n'){
-                add(string, string->size - 1, '\\');
-				add(string, string->size - 1, 'n');
+                add(string, string->size - 1, '\n');
             } else if(charRead == 't'){
-                add(string, string->size - 1, '\\');
-				add(string, string->size - 1, 't');
+                add(string, string->size - 1, '\t');
             } else if(charRead == '\\'){
                 add(string, string->size - 1, '\\');
-				add(string, string->size - 1, '\\');
             } else if(charRead == '\''){
-                add(string, string->size - 1, '\\');
-				add(string, string->size - 1, '\'');
-			} else if(charRead == '\"'){
-                add(string, string->size - 1, '\\');
-				add(string, string->size - 1, '\"');
+                add(string, string->size - 1, '\'');
             } else if(charRead == '"'){
                 add(string, string->size - 1, '"');
             } else{
@@ -268,12 +261,35 @@ Value *tokenize(){
 }
 
 
+void displayStr(Value *list){
+	int i = 0;
+	printf("%c", '"');
+	while (list->s[i] != '\0'){
+		if (list->s[i] == '\n'){
+			printf("\\n");
+		}else if (list->s[i] == '\t'){
+			printf("\\t");
+		}else if (list->s[i] == '\''){
+			printf("\\'");
+		}else if (list->s[i] == '\"'){
+			printf("\\'");
+		}else if (list->s[i] == '\\'){
+			printf("\\\\");
+		}else{
+			printf("%c", list->s[i]);	
+		}
+		i++;
+	}
+	printf("%c", '"');
+	printf(":string");
+}
+
+
 // The displayTokens function takes a linked
 // list of tokens as input, and displays those
 // tokens, one per line, with each token's type.
 void displayTokens(Value *list){
     assert(list != NULL);
-	int n;
     switch(list->type) {
             case OPEN_TYPE:
             printf("%s:open", "(");
@@ -305,7 +321,7 @@ void displayTokens(Value *list){
             displayTokens(list->c.cdr);
             break;
 		case STR_TYPE:
-			printf("\"%s\":string", list->s);
+			displayStr(list);
 			break;
         default:
             printf("\n");
