@@ -77,7 +77,7 @@ Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
     }
 
     while(charRead != EOF && charRead != '(' &&
-    charRead != ')' && charRead != ' '){
+        charRead != ')' && charRead != ' ' && charRead !='\n'){
         if(isDigit(charRead)){
             add(number, number->size - 1, charRead);
             charRead = fgetc(stdin);
@@ -111,7 +111,7 @@ Value *tokenizeSymbol(char charRead){
     add(symbol, 1, '\0');
     charRead = fgetc(stdin);
     while(charRead != EOF && charRead != '(' &&
-    charRead != ')' && charRead != ' '){
+        charRead != ')' && charRead != ' ' && charRead != '\n'){
         if(isSubsequent(charRead)){
             add(symbol, symbol->size - 1, charRead);
             charRead = fgetc(stdin);
@@ -133,7 +133,7 @@ Value *tokenizeBoolean(){
     if (charRead == 't' || charRead == 'f') {
         char lookAhead = fgetc(stdin);
         if (lookAhead == '(' || lookAhead == ')' ||
-            lookAhead == ' ' || lookAhead == EOF) {
+            lookAhead == ' ' || lookAhead == EOF || lookAhead == '\n') {
             ungetc(lookAhead, stdin);
             boolType = makeNull();
             boolType->type = BOOL_TYPE;
@@ -157,7 +157,7 @@ Value *tokenizeSign(char charRead){
     Value *token;
     char lookAhead = fgetc(stdin);
     if (lookAhead == EOF || lookAhead == '('
-        || lookAhead == ')' || lookAhead == ' ') {
+        || lookAhead == ')' || lookAhead == ' ' || lookAhead == '\n') {
         ungetc(lookAhead, stdin);
         token = makeNull();
         token->type = SYMBOL_TYPE;
