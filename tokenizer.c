@@ -55,6 +55,13 @@ bool isSubsequent(char c){
 			c == '+' || c == '-');
 }
 
+/*
+*bool isEscape(char *c){
+*	return (c == '\'' || c == '\"' || c == '\t' ||
+*			c == '\n' || c == '\\')
+*}
+*/
+
 Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
     Vector *number = talloc(sizeof(Vector));
     init(number, 1);
@@ -196,33 +203,47 @@ Value *tokenize(){
         } else if(isInitial(charRead)){
             Value *symbolType = tokenizeSymbol(charRead);
             list = cons(symbolType, list);
-	//changes made by Chae. No other changes except bool init = false;
-	// in beginning of function
+	//changes made by Chae. Added init to top of funct and isEscape.
         } else if(charRead == '"' && init == false){
 			init = true;
-			//char *string;
-			int acc = 1;
+			int acc = 0;
+			// must use unget to mark the correct spot
+			// so that " is added to the string as well
+			charRead = ungetc(charRead, stdin);
 			long int cur = ftell(stdin);
 			charRead = fgetc(stdin);
 			while (charRead != EOF || (charRead != '"' && init == true)){
 				acc += 1;
 				charRead = fgetc(stdin);
-			}
-			if (charRead == EOF){
-				printf("Err: Quotations do not pair up");
-				texit(0);
-			}else if(charRead == '"' && init == true){
-				fseek(stdin, cur, 0);
-				char *string[acc + 2];
-				for (int i = 0; i < acc + 1; i++){
-					string[i] = fgetc(stdin);
+				if (charRead == EOF && init == true){
+					printf("Err: Quotations do not pair up");
+					texit(0);
+				/*
+				}else if(charRead = '\'){}
+					if(isEscape(charRead)){
+						charRead = fgetc(stdin);
+					}else{
+						printf("Err: not correct escape sequence");
+						texit(0);
 				}
-				string[i+1] = '\0';
-				init = false;
-				Value *strType = makeNull();
-				strType->type = STR_TYPE;
-				strType->s = string;
-				list = cons(strType, list);
+				*/
+				}else if(charRead == '"' && init == true){
+					fseek(stdin, cur, 0);
+					//why can't this be a *string?
+					char string[acc];
+					int i;
+					for (i = 0; i < acc+1; i++){
+						charRead = fgetc(stdin);
+						string[i] = charRead;
+					}
+					string[i] = '\0';
+					init = false;
+					Value *strType = makeNull();
+					strType->type = STR_TYPE;
+					strType->s = string;
+					printf("%s\n", string);
+					list = cons(strType, list);
+				}
 			}
         }
         charRead = fgetc(stdin);
@@ -236,6 +257,7 @@ Value *tokenize(){
 // tokens, one per line, with each token's type.
 void displayTokens(Value *list){
     assert(list != NULL);
+	int n;
     switch(list->type) {
         case OPEN_TYPE:
             printf("%s:open", "(");
@@ -266,6 +288,15 @@ void displayTokens(Value *list){
             }
             displayTokens(list->c.cdr);
             break;
+		case STR_TYPE:
+//			n = sizeof(list->s);
+//			list->s = "I v v am SAD";
+			printf("%s:string", list->s);
+//			for (int i = 0; i < n; i++){
+//				printf("%s", list->s);
+//				printf("%c", list->s[i]);
+//			}
+			break;
         default:
             printf("\n");
             break;
