@@ -1,0 +1,23 @@
+"\"C\" is a programming language \t \n 4":string
+(:open
+lambda:symbol
+44.234778:float
+(:open
+in:symbol
+#f:boolean
+0:integer
+30:integer
+"\"":string
+):close
+):close
+):close
+):close
+3.587000:float
+-223.456000:float
+#t:boolean
+#f:boolean
+23:integer
+is:symbol
+"a number":string
+23.000000:float
+0:integer
