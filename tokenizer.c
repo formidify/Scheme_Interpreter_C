@@ -297,29 +297,29 @@ Value *tokenize(){
 * Handles displaying the string token.
 */
 void displayStr(Value *list){
-	int i = 0;
-	printf("%c", '"');
-	while (list->s[i] != '\0'){
-		if (list->s[i] == '\n'){
-			printf("\\n");
-		}else if (list->s[i] == '\t'){
-			printf("\\t");
-		}else if (list->s[i] == '\''){
-			// originally thought this part should be printf("\\'")
-			// but when testing out on Dr.Racket input "\'" printed "'"
-			// and so modified to follow Dr.Racket
-			printf("\'");
-		}else if (list->s[i] == '\"'){
-			printf("\\\"");
-		}else if (list->s[i] == '\\'){
-			printf("\\\\");
-		}else{
-			printf("%c", list->s[i]);
-		}
-		i++;
-	}
-	printf("%c", '"');
-	printf(":string");
+    int i = 0;
+    printf("%c", '"');
+    while (list->s[i] != '\0'){
+        if (list->s[i] == '\n'){
+            printf("\\n");
+        }else if (list->s[i] == '\t'){
+            printf("\\t");
+        }else if (list->s[i] == '\''){
+            // originally thought this part should be printf("\\'")
+            // but when testing out on Dr.Racket input "\'" printed "'"
+            // and so modified to follow Dr.Racket
+            printf("\'");
+        }else if (list->s[i] == '\"'){
+            printf("\\\"");
+        }else if (list->s[i] == '\\'){
+            printf("\\\\");
+        }else{
+            printf("%c", list->s[i]);
+        }
+        i++;
+    }
+    printf("%c", '"');
+    printf(":string");
 }
 
 
