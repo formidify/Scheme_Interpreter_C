@@ -1,9 +1,14 @@
 CC = clang
 CFLAGS = -g
 
-SRCS = linkedlist.c talloc.c vector.c main_tokenize.c tokenizer.c
-HDRS = vector.h linkedlist.h value.h talloc.h tokenizer.h
+#modified make by Chae. May want to check
+
+SRCS = linkedlist.c talloc.c vector.c main_tokenize.c tokenizer.c main_parser.c parser.c
+HDRS = vector.h linkedlist.h value.h talloc.h tokenizer.h parser.h
 OBJS = $(SRCS:.c=.o)
+
+parser: $(OBJS)
+	$(CC)  $(CFLAGS) $^  -o $@
 
 tokenizer: $(OBJS)
 	$(CC)  $(CFLAGS) $^  -o $@
@@ -21,3 +26,4 @@ clean:
 	rm *.o
 	rm linkedlist
 	rm tokenizer
+	rm parser
