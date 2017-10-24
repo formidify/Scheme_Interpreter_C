@@ -1,3 +1,9 @@
+/*
+* By Chae Kim, Tina Liu, James Yang
+* A program that tokenizes Scheme code fed in through stdin, storing tokens
+* in a linked list that can be displayed.
+* Valid tokens are boolean, integer, float, string, symbol, open, close
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "value.h"
@@ -7,12 +13,9 @@
 #include "linkedlist.h"
 #include <string.h>
 
-// function should read stdin in its entireity
-// and return a linked list consisting of all
-// tokens found.
-// https://www.cs.bu.edu/teaching/c/file-io/intro/
-// boolean, integer, float, string, symbol, open, close
-
+/*
+* Returns true if c is a digit, returns false otherwise.
+*/
 bool isDigit(char c){
     return (c == '0' || c == '1' || c == '2' ||
     c == '3' || c == '4' || c == '5' ||
@@ -20,6 +23,9 @@ bool isDigit(char c){
     c == '9');
 }
 
+/*
+* Returns true if c is a letter of the alphabet, returns false otherwise.
+*/
 bool isLetter(char c){
     return (c == 'a' || c == 'i' || c == 'q' ||
     c == 'b' || c == 'j' || c == 'r' ||
@@ -41,6 +47,10 @@ bool isLetter(char c){
     c == 'Z');
 }
 
+/*
+* Returns true if c is an initial specified by the Scheme grammar for symbols,
+* returns false otherwise.
+*/
 bool isInitial(char c){
     return (isLetter(c) || c == '!' || c == '$' ||
     c == '%' || c == '&' || c == '*' ||
@@ -49,12 +59,18 @@ bool isInitial(char c){
     c == '~' || c == '_' || c == '^');
 }
 
-
+/*
+* Returns true if c is a subsequent specified by the Scheme grammar
+* for symbols, returns false otherwise.
+*/
 bool isSubsequent(char c){
     return (isInitial(c) || isDigit(c) || c == '.' ||
     c == '+' || c == '-');
 }
 
+/*
+* Tokenizes a number, returning a pointer to the newly created token
+*/
 Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
     Vector *number = talloc(sizeof(Vector));
     init(number, 1);
@@ -86,7 +102,7 @@ Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
             hasDot = true;
             charRead = fgetc(stdin);
         }else {
-            printf("Tokenization error, unrecognized symbol in number.\n");
+            printf("Tokenization error, invalid character in number.\n");
             texit(0);
         }
     }
@@ -104,6 +120,9 @@ Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
     return numberType;
 }
 
+/*
+* Tokenizes a symbol, returning a pointer to the newly created token
+*/
 Value *tokenizeSymbol(char charRead){
     Vector *symbol = talloc(sizeof(Vector));
     init(symbol, 2);
@@ -127,6 +146,9 @@ Value *tokenizeSymbol(char charRead){
     return symbolType;
 }
 
+/*
+* Tokenizes a boolean, returning a pointer to the newly created token
+*/
 Value *tokenizeBoolean(){
     Value *boolType;
     char charRead = fgetc(stdin);
@@ -143,16 +165,20 @@ Value *tokenizeBoolean(){
                 boolType->b = true;
             }
         } else {
-            printf("Tokenization error: # is not a valid symbol.\n");
+            printf("Tokenization error: bool followed by invalid character.\n");
             texit(0);
         }
     } else {
-        printf("Tokenization error: # is not a valid symbol.\n");
+        printf("Tokenization error: # followed by invalid character.\n");
         texit(0);
     }
     return boolType;
 }
 
+/*
+* Tokenizes a either a sign or a number, depending on what follows + or -
+* Returns a pointer to the new token
+*/
 Value *tokenizeSign(char charRead){
     Value *token;
     char lookAhead = fgetc(stdin);
@@ -173,12 +199,15 @@ Value *tokenizeSign(char charRead){
         token = tokenizeNumber(charRead, true, isDot);
         return token;
     } else {
-        printf("Tokenization error, - or + not symbol or number.\n");
+        printf("Tokenization error, -/+ followed by invalid character.\n");
         texit(0);
         return token;
     }
 }
 
+/*
+* Tokenizes a string, returning a pointer to the newly created token
+*/
 Value *tokenizeString(){
     Vector *string = talloc(sizeof(Vector));
     init(string, 1);
@@ -215,6 +244,10 @@ Value *tokenizeString(){
     return strType;
 }
 
+/*
+* Reads stdin in its entirety and returns a linked list consisting of
+* all tokens found.
+*/
 Value *tokenize(){
     char charRead;
     Value *list = makeNull();
@@ -257,10 +290,12 @@ Value *tokenize(){
         }
         charRead = fgetc(stdin);
     }
-    return reverse(list); //see below
+    return reverse(list);
 }
 
-
+/*
+* Handles displaying the string token.
+*/
 void displayStr(Value *list){
 	int i = 0;
 	printf("%c", '"');
@@ -279,7 +314,7 @@ void displayStr(Value *list){
 		}else if (list->s[i] == '\\'){
 			printf("\\\\");
 		}else{
-			printf("%c", list->s[i]);	
+			printf("%c", list->s[i]);
 		}
 		i++;
 	}
@@ -288,9 +323,10 @@ void displayStr(Value *list){
 }
 
 
-// The displayTokens function takes a linked
-// list of tokens as input, and displays those
-// tokens, one per line, with each token's type.
+/*
+* Takes a linked list of tokens as input and displays those tokens one per line
+* with each token's type.
+*/
 void displayTokens(Value *list){
     assert(list != NULL);
     switch(list->type) {
