@@ -6,3 +6,5 @@ We worked by ourselves.
 
 proj3
 We went to office hours - mostly clarification questions.
+Referenced https://www.cs.bu.edu/teaching/c/file-io/intro/ for C file
+input/output
