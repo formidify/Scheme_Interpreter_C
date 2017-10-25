@@ -1,13 +1,9 @@
-;test for comments and strings
-"This should be a string"
-; this should be a comment, "and so should this!
-; so matching closing double quotes is not needed
-";This is a string," ; but now this is not a string
-"What does this give me?
-huhh?" ; should give me an \n character
-; test escape code for strings
-"\n my name is \t \\ \" \'"
-""
-" "
-"
-"
+;;Returns a new binary search tree identical to bst but with integer v appearing in its proper location
+;;If v is already in the tree, return bst with no changes
+(define insert
+  (lambda (v bst)
+    (cond ((not (bst? bst)) #f)
+          ((null-bst? bst) (make-bst v (null-bst) (null-bst)))
+          ((< v (entry bst)) (make-bst (entry bst) (insert v (left bst)) (right bst)))
+          ((> v (entry bst)) (make-bst (entry bst) (left bst) (insert v (right bst))))
+          (else bst))))

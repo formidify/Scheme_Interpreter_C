@@ -1,9 +1,7 @@
 CC = clang
 CFLAGS = -g
 
-#modified make by Chae. May want to check
-
-SRCS = linkedlist.c talloc.c vector.c main_tokenize.c tokenizer.c main_parser.c parser.c
+SRCS = linkedlist.c talloc.c vector.c main_parse.c tokenizer.c parser.c
 HDRS = vector.h linkedlist.h value.h talloc.h tokenizer.h parser.h
 OBJS = $(SRCS:.c=.o)
 
