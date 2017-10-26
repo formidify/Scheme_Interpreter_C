@@ -1,3 +1,5 @@
+(+ 2.34 +.6)
+(define x (quote a))
 (define insert
   (lambda (v bst)
     (cond ((not (bst? bst)) #f)

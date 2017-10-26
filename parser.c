@@ -21,15 +21,10 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 		Value *current = tree;
 		while(current->type != NULL_TYPE){
 			if(car(current)->type == OPEN_TYPE){
-				// changed here to match Jed's image in instructions.
-				if (*depth != 1){
-					tree = cdr(current);
-					tree = cons(newList, tree);
-					depth--;
-					return tree;
-				}
-				depth--;
-				return newList;
+				tree = cdr(current);
+				tree = cons(newList, tree);
+				(*depth)--;
+				return tree;
 			} else{
 				newList = cons(car(current), newList);
 				current = cdr(current);
@@ -39,7 +34,7 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 		texit(0);
 	} else{
 		if(token->type == OPEN_TYPE){
-			depth++;
+			(*depth)++;
 		}
 		tree = cons(token, tree);
 	}
@@ -71,7 +66,7 @@ Value *parse(Value *tokens){
 	if (depth != 0) {
 		syntaxError();
 	}
-	return tree;
+	return reverse(tree);
 }
 
 void printTree(Value *tree){
@@ -81,31 +76,34 @@ void printTree(Value *tree){
 			break;
         case BOOL_TYPE:
             if(tree->b){
-				printf("#t ");
+				printf("#t");
 			} else{
-				printf("#f ");
+				printf("#f");
 			}
             break;
         case SYMBOL_TYPE:
-            printf("%s ", tree->s);
+            printf("%s", tree->s);
             break;
         case INT_TYPE:
-            printf("%i ", tree->i);
+            printf("%i", tree->i);
             break;
         case DOUBLE_TYPE:
-            printf("%f ", tree->d);
+            printf("%f", tree->d);
             break;
         case STR_TYPE:
-            printf("\"%s\" ", tree->s);
+            printf("\"%s\"", tree->s);
             break;
         case CONS_TYPE:
 			if(car(tree)->type == CONS_TYPE){
 				printf("(");
 				printTree(car(tree));
-				printf(") ");
+				printf(")");
 				printTree(cdr(tree));
 			} else {
             	printTree(car(tree));
+				if(cdr(tree)->type != NULL_TYPE){
+					printf(" ");
+				}
             	printTree(cdr(tree));
 			}
             break;
