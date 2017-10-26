@@ -2,13 +2,11 @@
 #include <stdio.h>
 #include "value.h"
 #include "vector.h"
-// when do you put <> and when "" ?
 #include <assert.h>
 #include "tokenizer.h"
 #include "linkedlist.h"
 #include "parser.h"
 #include <string.h>
-// got rid of main_tokenizer in head - may cause problems?
 
 /*
 * Takes in a pre-existing tree, a token to add to it, and a pointer 
@@ -16,6 +14,7 @@
 * unclosed open parentheses in the parse tree. The parse tree is 
 * complete if (and only if) depth == 0 when the parse function returns.
 */
+
 Value *addToParseTree(Value *tree, int *depth, Value *token){
 	if(token->type == CLOSE_TYPE){
 		Value *newList = makeNull();
@@ -51,7 +50,6 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 void syntaxError(){
 	printf("Syntax error");
 	texit(0);
-}
 
 
 /*
@@ -62,6 +60,7 @@ void syntaxError(){
 Value *parse(Value *tokens){
    Value *tree = makeNull();
    int depth = 0;
+
    Value *current = tokens;
    assert(current != NULL && "Error (parse): null pointer");
    while (current->type != NULL_TYPE) {
@@ -73,7 +72,6 @@ Value *parse(Value *tokens){
       syntaxError();
    }
    return tree;
-}
 
 
 void displayStrP(Value *list){
@@ -100,7 +98,6 @@ void displayStrP(Value *list){
     }
     printf("%c", '"');
 //    printf(":string");
-}
 
 
 /*
@@ -173,3 +170,4 @@ void printTree(Value *tree){
 ////		printf("\n");
 //	}
 //	printf("%s", ")");
+}

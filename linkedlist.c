@@ -48,6 +48,9 @@ void displayHelper(Value *list){
         case BOOL_TYPE:
             printf("%d", list->b);
             break;
+        case SYMBOL_TYPE:
+            printf("%s", list->s);
+            break;
         case INT_TYPE:
             printf("%i", list->i);
             break;
