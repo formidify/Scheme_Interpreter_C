@@ -7,3 +7,4 @@
           ((< v (entry bst)) (make-bst (entry bst) (insert v (left bst)) (right bst)))
           ((> v (entry bst)) (make-bst (entry bst) (left bst) (insert v (right bst))))
           (else bst))))
+1 2 ("three")

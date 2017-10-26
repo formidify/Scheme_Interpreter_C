@@ -30,7 +30,7 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 				current = cdr(current);
 			}
 		}
-		printf("Error (parse): too many close parens");
+		printf("Syntax error: too many close parentheses");
 		texit(0);
 	} else{
 		if(token->type == OPEN_TYPE){
@@ -39,12 +39,6 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 		tree = cons(token, tree);
 	}
 	return tree;
-}
-
-
-void syntaxError(){
-	printf("Syntax error");
-	texit(0);
 }
 
 /*
@@ -64,7 +58,8 @@ Value *parse(Value *tokens){
 		current = cdr(current);
 	}
 	if (depth != 0) {
-		syntaxError();
+		printf("Syntax error: not enough close parentheses");
+		texit(0);
 	}
 	return reverse(tree);
 }
@@ -97,7 +92,11 @@ void printTree(Value *tree){
 			if(car(tree)->type == CONS_TYPE){
 				printf("(");
 				printTree(car(tree));
-				printf(")");
+				if(cdr(tree)->type == NULL_TYPE){
+					printf(")");
+				} else{
+					printf(") ");
+				}
 				printTree(cdr(tree));
 			} else {
             	printTree(car(tree));
