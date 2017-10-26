@@ -30,7 +30,7 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 				current = cdr(current);
 			}
 		}
-		printf("Syntax error: too many close parentheses");
+		printf("Syntax error: too many close parentheses\n");
 		texit(0);
 	} else{
 		if(token->type == OPEN_TYPE){
@@ -58,7 +58,7 @@ Value *parse(Value *tokens){
 		current = cdr(current);
 	}
 	if (depth != 0) {
-		printf("Syntax error: not enough close parentheses");
+		printf("Syntax error: not enough close parentheses\n");
 		texit(0);
 	}
 	return reverse(tree);
@@ -107,7 +107,7 @@ void printTree(Value *tree){
 			}
             break;
         default:
-			printf("Unexpected value type in parse tree.");
+			printf("Syntax error: unexpected value type in parse tree.\n");
 			texit(0);
             break;
     }
