@@ -14,9 +14,8 @@
 int main(void) {
    Value *list = tokenize();
    Value *tree = parse(list);
-   display(tree);
-   // printTree(tree);
-   // printf("\n");
+   printTree(tree);
+   printf("\n");
    tfree();
    return 0;
 }

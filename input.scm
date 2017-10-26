@@ -1,5 +1,3 @@
-;;Returns a new binary search tree identical to bst but with integer v appearing in its proper location
-;;If v is already in the tree, return bst with no changes
 (define insert
   (lambda (v bst)
     (cond ((not (bst? bst)) #f)
