@@ -21,3 +21,4 @@ is:symbol
 "a number":string
 23.000000:float
 0:integer
+"\\\\":string

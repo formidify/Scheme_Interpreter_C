@@ -1,0 +1,12 @@
+(lambda (let (x 3)))
+(+ (and 2 3) "if not" (if ((if cond or)23 23 (45 (6 7)))))
+()()((3))
+
+(((())))
+
+"Should work" (#t 
+
+cond(+ 0 ()
+
+)
+)

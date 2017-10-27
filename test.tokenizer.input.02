@@ -6,3 +6,4 @@
 #f ;finally a boolean but 23 is not a number
 23 is "a number" 23.00
 00000
+"\\\\""

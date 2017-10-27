@@ -99,12 +99,23 @@ void printTree(Value *tree){
 				}
 				printTree(cdr(tree));
 			} else {
+                if (car(tree)->type == NULL_TYPE){ //changes by James from 102 to 109
+                    printf("()");
+                
+                if(cdr(tree)->type == NULL_TYPE){
+					printf("");
+				} else{
+					printf(" ");
+				}
+                }
+                else{
             	printTree(car(tree));
 				if(cdr(tree)->type != NULL_TYPE){
 					printf(" ");
 				}
+                }
             	printTree(cdr(tree));
-			}
+                }
             break;
         default:
 			printf("Syntax error: unexpected value type in parse tree.\n");
