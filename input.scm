@@ -8,3 +8,4 @@
           ((> v (entry bst)) (make-bst (entry bst) (left bst) (insert v (right bst))))
           (else bst))))
 1 2 ("three")
+()

@@ -1,0 +1,7 @@
+do not need parantheses to parse
+() ;empty list works
+"this should still work"
+""
+(
+) ; should work
+)should throw too many parentheses error

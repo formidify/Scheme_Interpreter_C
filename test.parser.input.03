@@ -1,0 +1,5 @@
+(hello)
+("this should work")
+("does this also work \n?")
+;should throw error because unmatched parentheses
+((this should "throw error"(

@@ -1,0 +1,6 @@
+do not need parentheses to parse
+() ;empty list works
+"this should still work"
+""
+(
+) ; should work
