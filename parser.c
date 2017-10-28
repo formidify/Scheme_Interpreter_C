@@ -1,3 +1,8 @@
+/*
+* By Chae Kim, Tina Liu, James Yang
+* A program that parses Scheme tokens and constructs a parse tree
+* Valid tokens are boolean, integer, float, string, symbol, open, close
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "value.h"
@@ -14,7 +19,6 @@
 * unclosed open parentheses in the parse tree. The parse tree is
 * complete if (and only if) depth == 0 when the parse function returns.
 */
-
 Value *addToParseTree(Value *tree, int *depth, Value *token){
 	if(token->type == CLOSE_TYPE){
 		Value *newList = makeNull();
@@ -43,7 +47,7 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 
 /*
 * Takes a linked list of tokens from a Scheme program (as in
-* the output of your tokenizer), and it should return a pointer
+* the output of tokenizer), and returns a pointer
 * to a parse tree representing that program.
 */
 Value *parse(Value *tokens){
@@ -64,6 +68,9 @@ Value *parse(Value *tokens){
 	return reverse(tree);
 }
 
+/*
+* A helper method for printTree handling printing a value that is CONS_TYPE
+*/
 void printTreeConsType(Value *tree){
 	if(car(tree)->type == CONS_TYPE){
 		printf("(");
@@ -93,6 +100,9 @@ void printTreeConsType(Value *tree){
 	}
 }
 
+/*
+* Prints a representation of a valid parse tree.
+*/
 void printTree(Value *tree){
 	assert(tree != NULL);
 	switch(tree->type) {

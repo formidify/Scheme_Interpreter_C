@@ -1,13 +1,12 @@
-// delete unnecessary head files?
-// literally just copy and pasted.
-
+/*
+* Main program to run Parser
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "value.h"
 #include "tokenizer.h"
 #include "linkedlist.h"
 #include "parser.h"
-// what is string.h for?
 #include <string.h>
 #include "vector.h"
 
