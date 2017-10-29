@@ -10,3 +10,7 @@ cond(+ 0 ()
 
 )
 )
+(equal? "hello \n")
+
+("hello")
+;should throw error and disregard this comment

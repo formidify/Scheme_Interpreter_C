@@ -11,6 +11,7 @@
 
 void evaluationError(){
     printf("Evaluation error");
+    texit(0);
 }
 
 Frame *makeNullFrame(Frame *parent){
@@ -40,7 +41,17 @@ Value *evalQuote(Value *args, Frame *frame){
 }
 
 Value *evalIf(Value *args, Frame *frame){
-    return NULL;
+    //test if there are exactly three arguments
+    if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE ||
+        cdr(cdr(args))->type != CONS_TYPE || 
+        cdr(cdr(cdr(args)))->type != NULL_TYPE){
+        evaluationError();
+    }
+    Value *test = eval(car(args), frame);
+    if (test->type == BOOL_TYPE && test->b == false){
+        return eval(car(cdr(cdr(args))), frame);
+    }
+    return eval(car(cdr(args)), frame);
 }
 
 Value *evalLet(Value *args, Frame *frame){
