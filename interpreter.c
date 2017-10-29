@@ -9,15 +9,63 @@
 #include "interpreter.h"
 #include <string.h>
 
-Value *lookUpSymbol(Value *tree, Frame *frame);
+void evaluationError(){
+    printf("Evaluation error");
+}
 
-Value *evalQuote(Value *args, Frame *frame);
+Frame *makeNullFrame(Frame *parent){
+    Frame *newFrame = talloc(sizeof(Frame));
+    newFrame->parent = parent;
+    newFrame->bindings = makeNull();
+    return newFrame;
+}
 
-Value *evalIf(Value *args, Frame *frame);
+Value *lookUpSymbol(Value *symbol, Frame *frame){
+    if(frame == NULL){
+        evaluationError();
+    }
+    Value *current = frame->bindings;
+    while(current->type != NULL_TYPE){
+        Value *binding = car(current);
+        if(!strcmp(symbol->s, car(binding)->s)){
+            return cdr(binding);
+        }
+        current = cdr(current);
+    }
+    return lookUpSymbol(symbol, frame->parent);
+}
 
-Value *evalLet(Value *args, Frame *frame);
+Value *evalQuote(Value *args, Frame *frame){
+    return NULL;
+}
 
-void evaluationError();
+Value *evalIf(Value *args, Frame *frame){
+    return NULL;
+}
+
+Value *evalLet(Value *args, Frame *frame){
+    //create new frame g with frame as parent
+    Frame *g = makeNullFrame(frame);
+
+    //get list of bindings and body from args
+    Value *bindings = car(args);
+    Value *body = car(cdr(args));
+    Value *current = bindings;
+
+    while(current->type != NULL_TYPE){
+        //evaluate ei...ek in frame
+        Value *binding = car(current);
+        Value *result = eval(car(cdr(binding)), frame);
+        Value *variable = car(binding);
+        //create new binding in g
+        Value *newBinding = cons(variable, result);
+        g->bindings = cons(newBinding, g->bindings);
+        current = cdr(current);
+    }
+
+    //evaluate body in g and return result
+    return eval(body, g);
+}
 
 /*
 * Takes a parse tree of a single S-expression and an environment frame
@@ -28,16 +76,16 @@ Value *eval(Value *tree, Frame *frame){
     Value *result;
     switch (tree->type) {
         case INT_TYPE:
-            //...do something
+            return tree;
             break;
         case DOUBLE_TYPE:
-            //...do something
+            return tree;
             break;
         case BOOL_TYPE:
-            //...do something
+            return tree;
             break;
         case STR_TYPE:
-            //...do something
+            return tree;
             break;
 
         case SYMBOL_TYPE:
@@ -72,6 +120,25 @@ Value *eval(Value *tree, Frame *frame){
     return result;
 }
 
+void printResult(Value *result){
+    switch(result->type){
+        case BOOL_TYPE:
+            //do something
+            break;
+        case INT_TYPE:
+            printf("%i\n", result->i);
+            break;
+        case DOUBLE_TYPE:
+            printf("%f\n", result->d);
+            break;
+        case STR_TYPE:
+            printf("\"%s\"\n", result->s);
+            break;
+        default:
+            break;
+    }
+}
+
 /*
 * Handles a list of S-expressions (as in a Scheme program),
 * calls eval on each S-expression in the top-level (global) environment,
@@ -84,7 +151,7 @@ void interpret(Value *tree){
     Value *current = tree;
     while(current->type != NULL_TYPE){
         Value *result = eval(car(current), topFrame);
-        display(result);
+        printResult(result);
         current = cdr(current);
     }
 }

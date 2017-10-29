@@ -3,6 +3,7 @@
 */
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include "value.h"
 #include "tokenizer.h"
 #include "linkedlist.h"
