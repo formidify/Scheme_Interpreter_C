@@ -36,6 +36,14 @@ Value *lookUpSymbol(Value *symbol, Frame *frame){
     return lookUpSymbol(symbol, frame->parent);
 }
 
+void isInFrame(Value *var, Value *localBind){
+    while (localBind->type != NULL_TYPE){
+        if (!strcmp(var->s, car(car(localBind))->s)){
+            evaluationError();
+        }
+        localBind = cdr(localBind);
+    }
+}
 Value *evalQuote(Value *args, Frame *frame){
     return NULL;
 }
@@ -66,8 +74,14 @@ Value *evalLet(Value *args, Frame *frame){
     while(current->type != NULL_TYPE){
         //evaluate ei...ek in frame
         Value *binding = car(current);
-        Value *result = eval(car(cdr(binding)), frame);
         Value *variable = car(binding);
+        //variable has to be an identifier
+        if (variable->type != SYMBOL_TYPE){
+            evaluationError();
+        }
+        //if variable already in frame, then exit with an error
+        isInFrame(variable, g->bindings);
+        Value *result = eval(car(cdr(binding)), frame);
         //create new binding in g
         Value *newBinding = cons(variable, result);
         g->bindings = cons(newBinding, g->bindings);
