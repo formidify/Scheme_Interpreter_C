@@ -44,6 +44,24 @@ void isInFrame(Value *var, Value *localBind){
         localBind = cdr(localBind);
     }
 }
+
+void isCorrectBindings(Value *bindings){
+    Value *current = bindings;
+    //if it's an empty binding
+    if (current->type == NULL_TYPE){
+        evaluationError();
+    }
+    while (current->type != NULL_TYPE){
+        Value *binding = car(current);
+        if (binding->type != CONS_TYPE || 
+            car(binding)->type != SYMBOL_TYPE ||
+            cdr(binding)->type == NULL_TYPE ||
+            cdr(cdr(binding))->type != NULL_TYPE){
+            evaluationError();
+        }
+        current = cdr(current);
+    }
+}
 Value *evalQuote(Value *args, Frame *frame){
     return NULL;
 }
@@ -68,6 +86,13 @@ Value *evalLet(Value *args, Frame *frame){
 
     //get list of bindings and body from args
     Value *bindings = car(args);
+    /*
+    check if the bindings are syntactically correct because Scheme
+    checks that each binding has only two elements AND the first 
+    element is an identifier for all the bindings before moving
+    on to evaluate expressions individually
+    */
+    isCorrectBindings(bindings);
     Value *body = car(cdr(args));
     Value *current = bindings;
 
@@ -75,10 +100,6 @@ Value *evalLet(Value *args, Frame *frame){
         //evaluate ei...ek in frame
         Value *binding = car(current);
         Value *variable = car(binding);
-        //variable has to be an identifier
-        if (variable->type != SYMBOL_TYPE){
-            evaluationError();
-        }
         //if variable already in frame, then exit with an error
         isInFrame(variable, g->bindings);
         Value *result = eval(car(cdr(binding)), frame);
