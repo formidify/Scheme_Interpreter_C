@@ -10,7 +10,7 @@
 #include <string.h>
 
 void evaluationError(){
-    printf("Evaluation error");
+    printf("Evaluation error \n");
     texit(0);
 }
 
@@ -134,7 +134,10 @@ Value *eval(Value *tree, Frame *frame){
 void printResult(Value *result){
     switch(result->type){
         case BOOL_TYPE:
-            //do something
+            if (result->b) {
+                printf("#t\n");
+            }
+            else {printf("#f\n");}
             break;
         case INT_TYPE:
             printf("%i\n", result->i);
