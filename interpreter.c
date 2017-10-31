@@ -68,16 +68,11 @@ void validateNewBinding(Value *var, Value *localBind){
 void validateBindings(Value *bindings){
     Value *current = bindings;
 
-    //eval error if it's an empty binding
-    if (current->type == NULL_TYPE){
-        evaluationError("Empty bindings.");
-    }
-
     while (current->type != NULL_TYPE){
         Value *binding = car(current);
         if (binding->type != CONS_TYPE ||
             car(binding)->type != SYMBOL_TYPE ||
-            cdr(binding)->type == NULL_TYPE ||
+            cdr(binding)->type != CONS_TYPE ||
             cdr(cdr(binding))->type != NULL_TYPE){
             evaluationError("Invalid bindings.");
         }
@@ -93,14 +88,19 @@ Value *evalQuote(Value *args, Frame *frame){
 * Evaluates the special form IF
 */
 Value *evalIf(Value *args, Frame *frame){
-    //test if there are exactly three arguments
+    //test if there are only two or three arguments
     if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE ||
-        cdr(cdr(args))->type != CONS_TYPE ||
-        cdr(cdr(cdr(args)))->type != NULL_TYPE){
+       (cdr(cdr(args))->type == CONS_TYPE &&
+        cdr(cdr(cdr(args)))->type == CONS_TYPE)){
         evaluationError("Incorrect number of arguments for IF.");
     }
     Value *test = eval(car(args), frame);
     if (test->type == BOOL_TYPE && test->b == false){
+        if (cdr(cdr(args))->type == NULL_TYPE){
+            Value *voidValue = makeNull();
+            voidValue->type = VOID_TYPE;
+            return voidValue;
+        }
         return eval(car(cdr(cdr(args))), frame);
     }
     return eval(car(cdr(args)), frame);
@@ -116,9 +116,10 @@ Value *evalLet(Value *args, Frame *frame){
     //get list of bindings and body from args
     Value *bindings = car(args);
     validateBindings(bindings);
-    Value *body = car(cdr(args));
-    if(cdr(cdr(args))->type != NULL_TYPE){
-        evaluationError("LET requires exactly two arguments.");
+    Value *body = cdr(args);
+
+    if(body->type == NULL_TYPE){
+        evaluationError("LET requires at least two arguments.");
     }
 
     Value *current = bindings;
@@ -134,8 +135,17 @@ Value *evalLet(Value *args, Frame *frame){
         g->bindings = cons(newBinding, g->bindings);
         current = cdr(current);
     }
-    //evaluate body in g and return result
-    return eval(body, g);
+
+    /*
+    evaluate until the last expression of body in g and return the result
+    */
+    Value *bodyN = car(body);
+    while (cdr(body)->type != NULL_TYPE){
+        eval(bodyN, g);
+        body = cdr(body);
+        bodyN = car(body);
+    }
+    return eval(bodyN, g);
 }
 
 /*
@@ -144,6 +154,7 @@ Value *evalLet(Value *args, Frame *frame){
 * representing the value
 */
 Value *eval(Value *tree, Frame *frame){
+    assert(tree != NULL);
     Value *result;
     switch (tree->type) {
         case INT_TYPE:
@@ -184,7 +195,6 @@ Value *eval(Value *tree, Frame *frame){
             }
             break;
         }
-        // ... other cases ...
         default:
             break;
     }
@@ -195,6 +205,7 @@ Value *eval(Value *tree, Frame *frame){
 * Prints the result of evaluating an expression
 */
 void printResult(Value *result){
+    assert(result != NULL);
     switch(result->type){
         case BOOL_TYPE:
             if (result->b) {
@@ -224,7 +235,6 @@ void printResult(Value *result){
 void interpret(Value *tree){
     Frame *topFrame = NULL;
     assert(tree != NULL);
-    assert(tree->type == CONS_TYPE);
     Value *current = tree;
     while(current->type != NULL_TYPE){
         Value *result = eval(car(current), topFrame);
