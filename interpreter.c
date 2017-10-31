@@ -65,6 +65,27 @@ void validateNewBinding(Value *var, Value *localBind){
 * Checks that each binding has only two elements AND the first
 * element is an identifier
 */
+void validateNewBindings(Value *bindings){
+    Value *current = bindings;
+
+    while (current->type != NULL_TYPE){
+        Value *binding = car(current);
+        if (binding->type != CONS_TYPE ||
+            car(binding)->type != SYMBOL_TYPE ||
+            cdr(binding)->type != CONS_TYPE ||
+            cdr(cdr(binding))->type != NULL_TYPE){
+            evaluationError("Invalid bindings.");
+        }
+        current = cdr(current);
+    }
+}
+
+
+/*
+* Validates bindings are syntactically correct.
+* Checks that each binding has only two elements AND the first
+* element is an identifier
+*/
 void validateBindings(Value *bindings){
     Value *current = bindings;
 
@@ -79,6 +100,7 @@ void validateBindings(Value *bindings){
         current = cdr(current);
     }
 }
+
 
 Value *evalQuote(Value *args, Frame *frame){
 	Value *temp = makeNull();
@@ -122,11 +144,9 @@ Value *evalLet(Value *args, Frame *frame){
     Value *bindings = car(args);
     validateBindings(bindings);
     Value *body = cdr(args);
-
     if(body->type == NULL_TYPE){
         evaluationError("LET requires at least two arguments.");
     }
-
     Value *current = bindings;
     while(current->type != NULL_TYPE){
         //evaluate e_i...e_k in frame
