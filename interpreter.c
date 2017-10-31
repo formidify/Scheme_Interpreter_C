@@ -55,7 +55,7 @@ void isCorrectBindings(Value *bindings){
         Value *binding = car(current);
         if (binding->type != CONS_TYPE || 
             car(binding)->type != SYMBOL_TYPE ||
-            cdr(binding)->type == NULL_TYPE ||
+            cdr(binding)->type != CONS_TYPE ||
             cdr(cdr(binding))->type != NULL_TYPE){
             evaluationError();
         }
@@ -67,14 +67,19 @@ Value *evalQuote(Value *args, Frame *frame){
 }
 
 Value *evalIf(Value *args, Frame *frame){
-    //test if there are exactly three arguments
+    //test if there are only two or three arguments
     if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE ||
-        cdr(cdr(args))->type != CONS_TYPE || 
-        cdr(cdr(cdr(args)))->type != NULL_TYPE){
+       (cdr(cdr(args))->type == CONS_TYPE && 
+        cdr(cdr(cdr(args)))->type == CONS_TYPE)){
         evaluationError();
     }
     Value *test = eval(car(args), frame);
     if (test->type == BOOL_TYPE && test->b == false){
+        if (cdr(cdr(args))->type == NULL_TYPE){
+            Value *voidValue = makeNull();
+            voidValue->type = VOID_TYPE;
+            return voidValue;
+        }
         return eval(car(cdr(cdr(args))), frame);
     }
     return eval(car(cdr(args)), frame);
@@ -93,7 +98,7 @@ Value *evalLet(Value *args, Frame *frame){
     on to evaluate expressions individually
     */
     isCorrectBindings(bindings);
-    Value *body = car(cdr(args));
+    Value *body = cdr(args);
     Value *current = bindings;
 
     while(current->type != NULL_TYPE){
@@ -108,9 +113,16 @@ Value *evalLet(Value *args, Frame *frame){
         g->bindings = cons(newBinding, g->bindings);
         current = cdr(current);
     }
-
-    //evaluate body in g and return result
-    return eval(body, g);
+    /*
+    evaluate until the last expression of body in g and return the result
+    */
+    Value *bodyN = car(body);
+    while (cdr(body)->type != NULL_TYPE){
+        eval(bodyN, g);
+        body = cdr(body);
+        bodyN = car(body);
+    }
+    return eval(bodyN, g);
 }
 
 /*
