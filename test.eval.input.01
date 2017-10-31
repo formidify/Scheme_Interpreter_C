@@ -8,4 +8,6 @@
     (let ((z y))
         z))
 (let () 1)
+
+(quote "hi"234)
 (let ((x 1) ()) 1)
