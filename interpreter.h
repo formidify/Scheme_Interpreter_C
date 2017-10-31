@@ -9,5 +9,6 @@ typedef struct Frame Frame;
 
 void interpret(Value *tree);
 Value *eval(Value *expr, Frame *frame);
+void printEvalConsType(Value *result);
 
 #endif

@@ -9,11 +9,18 @@
 #include "interpreter.h"
 #include <string.h>
 
-void evaluationError(){
-    printf("Evaluation error \n");
+/*
+* Prints a given error message and safely exits the program
+*/
+void evaluationError(char *errorMsg){
+    printf("Evaluation error: %s\n", errorMsg);
     texit(0);
 }
 
+/*
+* Creates a new frame with the specified parent
+* and an empty list of bindings
+*/
 Frame *makeNullFrame(Frame *parent){
     Frame *newFrame = talloc(sizeof(Frame));
     newFrame->parent = parent;
@@ -21,9 +28,13 @@ Frame *makeNullFrame(Frame *parent){
     return newFrame;
 }
 
+/*
+* Looks up symbol in the given frame, and if not found,
+* continues searching the parents until the binding is found.
+*/
 Value *lookUpSymbol(Value *symbol, Frame *frame){
     if(frame == NULL){
-        evaluationError();
+        evaluationError("Binding for symbol not found.");
     }
     Value *current = frame->bindings;
     while(current->type != NULL_TYPE){
@@ -36,51 +47,93 @@ Value *lookUpSymbol(Value *symbol, Frame *frame){
     return lookUpSymbol(symbol, frame->parent);
 }
 
-void isInFrame(Value *var, Value *localBind){
-    while (localBind->type != NULL_TYPE){
-        if (!strcmp(var->s, car(car(localBind))->s)){
-            evaluationError();
+/*
+* Validates new variable is not already used as a binding
+*/
+void validateNewBinding(Value *var, Value *localBind){
+    Value *current = localBind;
+    while (current->type != NULL_TYPE){
+        if (!strcmp(var->s, car(car(current))->s)){
+            evaluationError("Duplicate identifier cannot be bound.");
         }
-        localBind = cdr(localBind);
+        current = cdr(current);
     }
 }
-Value *evalQuote(Value *args, Frame *frame){
-    return NULL;
+
+/*
+* Validates bindings are syntactically correct.
+* Checks that each binding has only two elements AND the first
+* element is an identifier
+*/
+void validateBindings(Value *bindings){
+    Value *current = bindings;
+
+    while (current->type != NULL_TYPE){
+        Value *binding = car(current);
+        if (binding->type != CONS_TYPE ||
+            car(binding)->type != SYMBOL_TYPE ||
+            cdr(binding)->type != CONS_TYPE ||
+            cdr(cdr(binding))->type != NULL_TYPE){
+            evaluationError("Invalid bindings.");
+        }
+        current = cdr(current);
+    }
 }
 
+Value *evalQuote(Value *args, Frame *frame){
+	Value *temp = makeNull();
+	if (args->type == CONS_TYPE){
+		temp = eval(cdr(args),frame);
+		args = cons(car(args), temp);
+	}
+	return args;
+}
+
+/*
+* Evaluates the special form IF
+*/
 Value *evalIf(Value *args, Frame *frame){
-    //test if there are exactly three arguments
+    //test if there are only two or three arguments
     if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE ||
-        cdr(cdr(args))->type != CONS_TYPE || 
-        cdr(cdr(cdr(args)))->type != NULL_TYPE){
-        evaluationError();
+       (cdr(cdr(args))->type == CONS_TYPE &&
+        cdr(cdr(cdr(args)))->type == CONS_TYPE)){
+        evaluationError("Incorrect number of arguments for IF.");
     }
     Value *test = eval(car(args), frame);
     if (test->type == BOOL_TYPE && test->b == false){
+        if (cdr(cdr(args))->type == NULL_TYPE){
+            Value *voidValue = makeNull();
+            voidValue->type = VOID_TYPE;
+            return voidValue;
+        }
         return eval(car(cdr(cdr(args))), frame);
     }
     return eval(car(cdr(args)), frame);
 }
 
+/*
+* Evaluates the special form LET
+*/
 Value *evalLet(Value *args, Frame *frame){
     //create new frame g with frame as parent
     Frame *g = makeNullFrame(frame);
 
     //get list of bindings and body from args
     Value *bindings = car(args);
-    Value *body = car(cdr(args));
-    Value *current = bindings;
+    validateBindings(bindings);
+    Value *body = cdr(args);
 
+    if(body->type == NULL_TYPE){
+        evaluationError("LET requires at least two arguments.");
+    }
+
+    Value *current = bindings;
     while(current->type != NULL_TYPE){
-        //evaluate ei...ek in frame
+        //evaluate e_i...e_k in frame
         Value *binding = car(current);
         Value *variable = car(binding);
-        //variable has to be an identifier
-        if (variable->type != SYMBOL_TYPE){
-            evaluationError();
-        }
         //if variable already in frame, then exit with an error
-        isInFrame(variable, g->bindings);
+        validateNewBinding(variable, g->bindings);
         Value *result = eval(car(cdr(binding)), frame);
         //create new binding in g
         Value *newBinding = cons(variable, result);
@@ -88,8 +141,16 @@ Value *evalLet(Value *args, Frame *frame){
         current = cdr(current);
     }
 
-    //evaluate body in g and return result
-    return eval(body, g);
+    /*
+    evaluate until the last expression of body in g and return the result
+    */
+    Value *bodyN = car(body);
+    while (cdr(body)->type != NULL_TYPE){
+        eval(bodyN, g);
+        body = cdr(body);
+        bodyN = car(body);
+    }
+    return eval(bodyN, g);
 }
 
 /*
@@ -98,6 +159,7 @@ Value *evalLet(Value *args, Frame *frame){
 * representing the value
 */
 Value *eval(Value *tree, Frame *frame){
+    assert(tree != NULL);
     Value *result;
     switch (tree->type) {
         case INT_TYPE:
@@ -112,7 +174,6 @@ Value *eval(Value *tree, Frame *frame){
         case STR_TYPE:
             return tree;
             break;
-
         case SYMBOL_TYPE:
             return lookUpSymbol(tree, frame);
             break;
@@ -121,6 +182,7 @@ Value *eval(Value *tree, Frame *frame){
             Value *args = cdr(tree);
 
             // Sanity and error checking on first...
+            assert(first != NULL);
 
             if (!strcmp(first->s, "if")) {
                 result = evalIf(args, frame);
@@ -134,18 +196,89 @@ Value *eval(Value *tree, Frame *frame){
 
             else {
                 // not a recognized special form
-                evaluationError();
+                evaluationError("Unrecognized special form.");
             }
             break;
         }
-        // ... other cases ...
         default:
             break;
     }
     return result;
 }
 
+/*
+* Prints the result of evaluating an expression
+*/
+
+
+void printEvalConsHelp(Value *result){
+	assert(result != NULL);
+	switch(result->type) {
+//		case NULL_TYPE:
+//			break;
+		case BOOL_TYPE:
+			if(result->b){
+				printf("#t");
+			} else{
+				printf("#f");
+			}
+			break;
+		case SYMBOL_TYPE:
+			printf("%s", result->s);
+			break;
+		case INT_TYPE:
+			printf("%i", result->i);
+			break;
+		case DOUBLE_TYPE:
+			printf("%f", result->d);
+			break;
+		case STR_TYPE:
+			printf("\"%s\"", result->s);
+			break;
+		case CONS_TYPE:
+			printEvalConsType(result);
+			break;
+		default:
+//			printf("Syntax error: unexpected value type in parse tree.\n");
+//			texit(0);
+			break;
+	}
+}
+
+
+void printEvalConsType(Value *result){
+	if(car(result)->type == CONS_TYPE){
+		printf("(");
+		printEvalConsHelp(car(result));
+		if(cdr(result)->type == NULL_TYPE){
+			printf(")");
+		} else{
+			printf(") ");
+		}
+		printEvalConsHelp(cdr(result));
+	} else {
+		if (car(result)->type == NULL_TYPE){
+			printf("()");
+			if(cdr(result)->type == NULL_TYPE){
+				printf("");
+			} else{
+				printf(" ");
+			}
+		}
+		else{
+			printEvalConsHelp(car(result));
+			if(cdr(result)->type != NULL_TYPE){
+				printf(" ");
+			}
+		}
+		printEvalConsHelp(cdr(result));
+	}
+}
+
+
+
 void printResult(Value *result){
+    assert(result != NULL);
     switch(result->type){
         case BOOL_TYPE:
             if (result->b) {
@@ -162,6 +295,9 @@ void printResult(Value *result){
         case STR_TYPE:
             printf("\"%s\"\n", result->s);
             break;
+		case CONS_TYPE:
+			printEvalConsType(result);
+			break;
         default:
             break;
     }
@@ -175,7 +311,6 @@ void printResult(Value *result){
 void interpret(Value *tree){
     Frame *topFrame = NULL;
     assert(tree != NULL);
-    assert(tree->type == CONS_TYPE);
     Value *current = tree;
     while(current->type != NULL_TYPE){
         Value *result = eval(car(current), topFrame);

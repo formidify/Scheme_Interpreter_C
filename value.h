@@ -12,7 +12,8 @@ typedef enum {
    OPEN_TYPE,
    CLOSE_TYPE,
    BOOL_TYPE,
-   SYMBOL_TYPE
+   SYMBOL_TYPE,
+   VOID_TYPE
 } valueType;
 
 struct Value {
