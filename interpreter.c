@@ -104,10 +104,13 @@ void validateBindings(Value *bindings){
 
 Value *evalQuote(Value *args, Frame *frame){
 	Value *temp = makeNull();
-	if (args->type == CONS_TYPE){
-		temp = eval(cdr(args),frame);
-		args = cons(car(args), temp);
+	if ((cdr(args))->type != NULL_TYPE){
+		evaluationError("Incorrent number of arguments for QUOTE.");
 	}
+//	if (args->type == CONS_TYPE){
+//		temp = eval(cdr(args),frame);
+//		args = cons(car(args), temp);
+//	}
 	return args;
 }
 
