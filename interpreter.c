@@ -130,12 +130,12 @@ Value *evalLet(Value *args, Frame *frame){
     if(body->type == NULL_TYPE){
         evaluationError("LET requires at least two arguments.");
     }
+
+    //evaluate e_i...e_k in frame
     Value *current = bindings;
     while(current->type != NULL_TYPE){
-        //evaluate e_i...e_k in frame
         Value *binding = car(current);
         Value *variable = car(binding);
-        //if variable already in frame, then exit with an error
         validateNewBinding(variable, g->bindings);
         Value *result = eval(car(cdr(binding)), frame);
         //create new binding in g
@@ -144,9 +144,7 @@ Value *evalLet(Value *args, Frame *frame){
         current = cdr(current);
     }
 
-    /*
-    evaluate until the last expression of body in g and return the result
-    */
+    //evaluate until the last expression of body in g and return the result
     Value *bodyN = car(body);
     while (cdr(body)->type != NULL_TYPE){
         eval(bodyN, g);
@@ -154,6 +152,35 @@ Value *evalLet(Value *args, Frame *frame){
         bodyN = car(body);
     }
     return eval(bodyN, g);
+}
+
+/*
+* Evaluates CONS_TYPE values from the parse tree
+*/
+Value *evalConsType(Value *tree, Frame *frame){
+    Value *result;
+    Value *first = car(tree);
+    Value *args = cdr(tree);
+
+    // Sanity and error checking on first...
+    if(first == NULL || (first->type != SYMBOL_TYPE
+        && first->type != CONS_TYPE)){
+        evaluationError("Invalid syntax.");
+    }
+
+    if (!strcmp(first->s, "if")) {
+        result = evalIf(args, frame);
+    } else if(!strcmp(first->s, "quote")) {
+        result = evalQuote(args, frame);
+    } else if(!strcmp(first->s, "let")) {
+        result = evalLet(args, frame);
+    }
+    // ... other special forms here ...
+    else {
+        // not a recognized special form
+        evaluationError("Unrecognized special form.");
+    }
+    return result;
 }
 
 /*
@@ -166,14 +193,8 @@ Value *eval(Value *tree, Frame *frame){
     Value *result;
     switch (tree->type) {
         case INT_TYPE:
-            return tree;
-            break;
         case DOUBLE_TYPE:
-            return tree;
-            break;
         case BOOL_TYPE:
-            return tree;
-            break;
         case STR_TYPE:
             return tree;
             break;
@@ -181,27 +202,7 @@ Value *eval(Value *tree, Frame *frame){
             return lookUpSymbol(tree, frame);
             break;
         case CONS_TYPE: {
-            Value *first = car(tree);
-            Value *args = cdr(tree);
-
-            // Sanity and error checking on first...
-            if(first == NULL || (first->type != SYMBOL_TYPE
-                && first->type != CONS_TYPE)){
-                evaluationError("Invalid syntax.");
-            }
-
-            if (!strcmp(first->s, "if")) {
-                result = evalIf(args, frame);
-            } else if(!strcmp(first->s, "quote")) {
-                result = evalQuote(args, frame);
-            } else if(!strcmp(first->s, "let")) {
-                result = evalLet(args, frame);
-            }
-            // ... other special forms here ...
-            else {
-                // not a recognized special form
-                evaluationError("Unrecognized special form.");
-            }
+            result = evalConsType(tree, frame);
             break;
         }
         default:
@@ -218,29 +219,20 @@ void printEvalConsType(Value *result){
 	if(car(result)->type == CONS_TYPE){
 		printf("(");
 		printResult(car(result));
-		if(cdr(result)->type == NULL_TYPE){
-			printf(")");
-		} else{
-			printf(") ");
-		}
-		printResult(cdr(result));
+        printf(")");
 	} else {
 		if (car(result)->type == NULL_TYPE){
 			printf("()");
-			if(cdr(result)->type == NULL_TYPE){
-				printf("");
-			} else{
-				printf(" ");
-			}
 		}
 		else{
 			printResult(car(result));
-			if(cdr(result)->type != NULL_TYPE){
-				printf(" ");
-			}
 		}
-		printResult(cdr(result));
 	}
+
+    if(cdr(result)->type != NULL_TYPE){
+        printf(" ");
+    }
+    printResult(cdr(result));
 }
 
 /*
@@ -253,7 +245,9 @@ void printResult(Value *result){
             if (result->b) {
                 printf("#t");
             }
-            else {printf("#f");}
+            else {
+                printf("#f");
+            }
             break;
         case INT_TYPE:
             printf("%i", result->i);
