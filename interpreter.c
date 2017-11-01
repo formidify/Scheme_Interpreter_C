@@ -69,26 +69,6 @@ void validateNewBinding(Value *var, Value *localBind){
 * Checks that each binding has only two elements AND the first
 * element is an identifier
 */
-void validateNewBindings(Value *bindings){
-    Value *current = bindings;
-
-    while (current->type != NULL_TYPE){
-        Value *binding = car(current);
-        if (binding->type != CONS_TYPE ||
-            car(binding)->type != SYMBOL_TYPE ||
-            cdr(binding)->type != CONS_TYPE ||
-            cdr(cdr(binding))->type != NULL_TYPE){
-            evaluationError("Invalid bindings.");
-        }
-        current = cdr(current);
-    }
-}
-
-/*
-* Validates bindings are syntactically correct.
-* Checks that each binding has only two elements AND the first
-* element is an identifier
-*/
 void validateBindings(Value *bindings){
     Value *current = bindings;
 
