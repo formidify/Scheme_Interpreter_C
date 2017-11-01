@@ -307,7 +307,9 @@ void interpret(Value *tree){
     while(current->type != NULL_TYPE){
         Value *result = eval(car(current), topFrame);
         printResult(result);
-        printf("\n");
+        if(result->type != VOID_TYPE){
+            printf("\n");
+        }
         current = cdr(current);
     }
 }
