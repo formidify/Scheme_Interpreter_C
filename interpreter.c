@@ -1,3 +1,7 @@
+/*
+* By Chae Kim, Tina Liu, James Yang
+* A Scheme interpreter
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "value.h"
@@ -80,7 +84,6 @@ void validateNewBindings(Value *bindings){
     }
 }
 
-
 /*
 * Validates bindings are syntactically correct.
 * Checks that each binding has only two elements AND the first
@@ -101,10 +104,12 @@ void validateBindings(Value *bindings){
     }
 }
 
-
+/*
+* Evaluates the special form QUOTE
+*/
 Value *evalQuote(Value *args, Frame *frame){
     if(args->type == NULL_TYPE || cdr(args)->type != NULL_TYPE){
-        evaluationError("QUOTE requires exactly one argument");
+        evaluationError("QUOTE requires exactly one argument.");
     }
 	return args;
 }
@@ -200,7 +205,10 @@ Value *eval(Value *tree, Frame *frame){
             Value *args = cdr(tree);
 
             // Sanity and error checking on first...
-            assert(first != NULL);
+            if(first == NULL || (first->type != SYMBOL_TYPE
+                && first->type != CONS_TYPE)){
+                evaluationError("Invalid syntax.");
+            }
 
             if (!strcmp(first->s, "if")) {
                 result = evalIf(args, frame);
@@ -209,9 +217,7 @@ Value *eval(Value *tree, Frame *frame){
             } else if(!strcmp(first->s, "let")) {
                 result = evalLet(args, frame);
             }
-
             // ... other special forms here ...
-
             else {
                 // not a recognized special form
                 evaluationError("Unrecognized special form.");
@@ -224,6 +230,9 @@ Value *eval(Value *tree, Frame *frame){
     return result;
 }
 
+/*
+* Prints the result of CONS_TYPE
+*/
 void printResult(Value *result);
 void printEvalConsType(Value *result){
 	if(car(result)->type == CONS_TYPE){
