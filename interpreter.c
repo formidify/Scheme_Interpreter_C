@@ -1,3 +1,7 @@
+/*
+* By Chae Kim, Tina Liu, James Yang
+* A Scheme interpreter
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "value.h"
@@ -80,7 +84,6 @@ void validateNewBindings(Value *bindings){
     }
 }
 
-
 /*
 * Validates bindings are syntactically correct.
 * Checks that each binding has only two elements AND the first
@@ -101,16 +104,13 @@ void validateBindings(Value *bindings){
     }
 }
 
-
+/*
+* Evaluates the special form QUOTE
+*/
 Value *evalQuote(Value *args, Frame *frame){
-	Value *temp = makeNull();
-	if ((cdr(args))->type != NULL_TYPE){
-		evaluationError("Incorrent number of arguments for QUOTE.");
-	}
-//	if (args->type == CONS_TYPE){
-//		temp = eval(cdr(args),frame);
-//		args = cons(car(args), temp);
-//	}
+    if(args->type == NULL_TYPE || cdr(args)->type != NULL_TYPE){
+        evaluationError("QUOTE requires exactly one argument.");
+    }
 	return args;
 }
 
@@ -205,7 +205,10 @@ Value *eval(Value *tree, Frame *frame){
             Value *args = cdr(tree);
 
             // Sanity and error checking on first...
-            assert(first != NULL);
+            if(first == NULL || (first->type != SYMBOL_TYPE
+                && first->type != CONS_TYPE)){
+                evaluationError("Invalid syntax.");
+            }
 
             if (!strcmp(first->s, "if")) {
                 result = evalIf(args, frame);
@@ -214,9 +217,7 @@ Value *eval(Value *tree, Frame *frame){
             } else if(!strcmp(first->s, "let")) {
                 result = evalLet(args, frame);
             }
-
             // ... other special forms here ...
-
             else {
                 // not a recognized special form
                 evaluationError("Unrecognized special form.");
@@ -230,55 +231,19 @@ Value *eval(Value *tree, Frame *frame){
 }
 
 /*
-* Prints the result of evaluating an expression
+* Prints the result of CONS_TYPE
 */
-
-
-void printEvalConsHelp(Value *result){
-	assert(result != NULL);
-	switch(result->type) {
-//		case NULL_TYPE:
-//			break;
-		case BOOL_TYPE:
-			if(result->b){
-				printf("#t");
-			} else{
-				printf("#f");
-			}
-			break;
-		case SYMBOL_TYPE:
-			printf("%s", result->s);
-			break;
-		case INT_TYPE:
-			printf("%i", result->i);
-			break;
-		case DOUBLE_TYPE:
-			printf("%f", result->d);
-			break;
-		case STR_TYPE:
-			printf("\"%s\"", result->s);
-			break;
-		case CONS_TYPE:
-			printEvalConsType(result);
-			break;
-		default:
-//			printf("Syntax error: unexpected value type in parse tree.\n");
-//			texit(0);
-			break;
-	}
-}
-
-
+void printResult(Value *result);
 void printEvalConsType(Value *result){
 	if(car(result)->type == CONS_TYPE){
 		printf("(");
-		printEvalConsHelp(car(result));
+		printResult(car(result));
 		if(cdr(result)->type == NULL_TYPE){
 			printf(")");
 		} else{
 			printf(") ");
 		}
-		printEvalConsHelp(cdr(result));
+		printResult(cdr(result));
 	} else {
 		if (car(result)->type == NULL_TYPE){
 			printf("()");
@@ -289,38 +254,42 @@ void printEvalConsType(Value *result){
 			}
 		}
 		else{
-			printEvalConsHelp(car(result));
+			printResult(car(result));
 			if(cdr(result)->type != NULL_TYPE){
 				printf(" ");
 			}
 		}
-		printEvalConsHelp(cdr(result));
+		printResult(cdr(result));
 	}
 }
 
-
-
+/*
+* Prints the result of evaluating an expression
+*/
 void printResult(Value *result){
     assert(result != NULL);
     switch(result->type){
         case BOOL_TYPE:
             if (result->b) {
-                printf("#t\n");
+                printf("#t");
             }
-            else {printf("#f\n");}
+            else {printf("#f");}
             break;
         case INT_TYPE:
-            printf("%i\n", result->i);
+            printf("%i", result->i);
             break;
         case DOUBLE_TYPE:
-            printf("%f\n", result->d);
+            printf("%f", result->d);
             break;
         case STR_TYPE:
-            printf("\"%s\"\n", result->s);
+            printf("\"%s\"", result->s);
             break;
 		case CONS_TYPE:
 			printEvalConsType(result);
 			break;
+        case SYMBOL_TYPE:
+    		printf("%s", result->s);
+    		break;
         default:
             break;
     }
@@ -338,6 +307,7 @@ void interpret(Value *tree){
     while(current->type != NULL_TYPE){
         Value *result = eval(car(current), topFrame);
         printResult(result);
+        printf("\n");
         current = cdr(current);
     }
 }
