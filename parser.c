@@ -101,6 +101,34 @@ void printTreeConsType(Value *tree){
 }
 
 /*
+Helper function to print the escape characters of a string
+*/
+void printStr(char *s){
+    int i = 0;
+    printf("%c", '"');
+    while (s[i] != '\0'){
+        if (s[i] == '\n'){
+            printf("\\n");
+        }else if (s[i] == '\t'){
+            printf("\\t");
+        }else if (s[i] == '\''){
+            // originally thought this part should be printf("\\'")
+            // but when testing out on Dr.Racket input "\'" printed "'"
+            // and so modified to follow Dr.Racket
+            printf("\'");
+        }else if (s[i] == '\"'){
+            printf("\\\"");
+        }else if (s[i] == '\\'){
+            printf("\\\\");
+        }else{
+            printf("%c", s[i]);
+        }
+        i++;
+    }
+    printf("%c", '"');
+}
+
+/*
 * Prints a representation of a valid parse tree.
 */
 void printTree(Value *tree){
@@ -125,7 +153,7 @@ void printTree(Value *tree){
 			printf("%f", tree->d);
 			break;
 		case STR_TYPE:
-			printf("\"%s\"", tree->s);
+			printStr(tree->s);
 			break;
 		case CONS_TYPE:
 			printTreeConsType(tree);
