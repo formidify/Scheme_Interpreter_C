@@ -100,6 +100,32 @@ void printTreeConsType(Value *tree){
 	}
 }
 
+void displayStrP(Value *list){
+    int i = 0;
+    printf("%c", '"');
+    while (list->s[i] != '\0'){
+        if (list->s[i] == '\n'){
+            printf("getting HERE \n");
+            printf("\\n");
+        }else if (list->s[i] == '\t'){
+            printf("\\t");
+        }else if (list->s[i] == '\''){
+            // originally thought this part should be printf("\\'")
+            // but when testing out on Dr.Racket input "\'" printed "'"
+            // and so modified to follow Dr.Racket
+            printf("\'");
+        }else if (list->s[i] == '\"'){
+            printf("\\\"");
+        }else if (list->s[i] == '\\'){
+            printf("\\\\");
+        }else{
+            printf("%c", list->s[i]);
+        }
+        i++;
+    }
+    printf("%c", '"');
+}
+
 /*
 * Prints a representation of a valid parse tree.
 */
@@ -125,7 +151,8 @@ void printTree(Value *tree){
 			printf("%f", tree->d);
 			break;
 		case STR_TYPE:
-			printf("\"%s\"", tree->s);
+            printf("%s\n", "getting her?? \n");
+			displayStrP(tree);
 			break;
 		case CONS_TYPE:
 			printTreeConsType(tree);
