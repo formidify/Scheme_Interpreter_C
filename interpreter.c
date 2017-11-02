@@ -235,6 +235,7 @@ void printEvalConsType(Value *result){
     printResult(cdr(result));
 }
 
+void printStr(char *s);
 /*
 * Prints the result of evaluating an expression
 */
@@ -256,7 +257,8 @@ void printResult(Value *result){
             printf("%f", result->d);
             break;
         case STR_TYPE:
-            printf("\"%s\"", result->s);
+            //using printStr() from parser
+            printStr(result->s);
             break;
 		case CONS_TYPE:
 			printEvalConsType(result);
