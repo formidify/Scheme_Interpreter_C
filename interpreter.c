@@ -13,6 +13,8 @@
 #include "interpreter.h"
 #include <string.h>
 
+static Frame *topFrame;
+
 /*
 * Prints a given error message and safely exits the program
 */
@@ -52,16 +54,24 @@ Value *lookUpSymbol(Value *symbol, Frame *frame){
 }
 
 /*
-* Validates new variable is not already used as a binding
+* If overwrite is false, validates that var does not already exist
+* as a binding in localBind.
+* Otherwise if overwrite is true, returns the Value of the binding for
+* var if it already exists, otherwise return NULL
 */
-void validateNewBinding(Value *var, Value *localBind){
+Value *checkDuplicateBinding(Value *var, Value *localBind, bool overwrite){
     Value *current = localBind;
     while (current->type != NULL_TYPE){
         if (!strcmp(var->s, car(car(current))->s)){
-            evaluationError("Duplicate identifier cannot be bound.");
+            if(!overwrite){
+                evaluationError("Duplicate identifier cannot be bound.");
+            } else{
+                return car(current);
+            }
         }
         current = cdr(current);
     }
+    return NULL;
 }
 
 /*
@@ -136,7 +146,7 @@ Value *evalLet(Value *args, Frame *frame){
     while(current->type != NULL_TYPE){
         Value *binding = car(current);
         Value *variable = car(binding);
-        validateNewBinding(variable, g->bindings);
+        checkDuplicateBinding(variable, g->bindings, false);
         Value *result = eval(car(cdr(binding)), frame);
         //create new binding in g
         Value *newBinding = cons(variable, result);
@@ -152,6 +162,39 @@ Value *evalLet(Value *args, Frame *frame){
         bodyN = car(body);
     }
     return eval(bodyN, g);
+}
+
+Value *evalDefine(Value *args, Frame *frame){
+    Value *voidType = makeNull();
+    voidType->type = VOID_TYPE;
+
+    if(frame != topFrame){
+        evaluationError("Define only supported at the top level.");
+    }
+
+    if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE ||
+        cdr(cdr(args))->type != NULL_TYPE){
+        evaluationError("Incorrect number of arguments for DEFINE.");
+    }
+
+    Value *var = car(args);
+    Value *expr = car(cdr(args));
+
+    if(var->type != SYMBOL_TYPE){
+        evaluationError("Variable for DEFINE must be an identifier.");
+    }
+
+    Value *newBinding = checkDuplicateBinding(var, frame->bindings, true);
+    Value *result = eval(expr, frame);
+
+    if(newBinding == NULL){
+        newBinding = cons(var, result);
+        frame->bindings = cons(newBinding, frame->bindings);
+    } else {
+        *newBinding = *(cons(var, result));
+    }
+
+    return voidType;
 }
 
 /*
@@ -174,6 +217,8 @@ Value *evalConsType(Value *tree, Frame *frame){
         result = evalQuote(args, frame);
     } else if(!strcmp(first->s, "let")) {
         result = evalLet(args, frame);
+    } else if(!strcmp(first->s, "define")) {
+        result = evalDefine(args, frame);
     }
     // ... other special forms here ...
     else {
@@ -257,7 +302,6 @@ void printResult(Value *result){
             printf("%f", result->d);
             break;
         case STR_TYPE:
-            //using printStr() from parser
             printStr(result->s);
             break;
 		case CONS_TYPE:
@@ -277,7 +321,7 @@ void printResult(Value *result){
 * and prints each result in turn
 */
 void interpret(Value *tree){
-    Frame *topFrame = NULL;
+    topFrame = makeNullFrame(NULL);
     assert(tree != NULL);
     Value *current = tree;
     while(current->type != NULL_TYPE){

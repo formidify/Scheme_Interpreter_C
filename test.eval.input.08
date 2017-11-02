@@ -1,0 +1,18 @@
+(define x 30)
+x
+(define y 40)
+y
+(define z "\n\t\"")
+z
+(define z "change")
+z
+(define z (if #t "change again" 4))
+z
+(if #t x y)
+(let ((x "in let") (z x))
+    x)
+(let ((x "in let") (z x))
+    z)
+x
+y
+z
