@@ -17,6 +17,8 @@
         z))
 (let () 1)
 
+(if #f 1)
+
 (if (if 2 #t #f) (if 23 #t 1) (if 23 1 2)) 2 (if #t #t 2)
 (let ((x 1) (y 2))
     (let ((z y))
