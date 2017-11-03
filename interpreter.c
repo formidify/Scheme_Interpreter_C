@@ -95,6 +95,20 @@ void validateBindings(Value *bindings){
 }
 
 /*
+* Evaluates a body of an expression, returning the result
+* of the last expression in the body
+*/
+Value *evalBody(Value *body, Frame *frame){
+    Value *bodyN = car(body);
+    while (cdr(body)->type != NULL_TYPE){
+        eval(bodyN, frame);
+        body = cdr(body);
+        bodyN = car(body);
+    }
+    return eval(bodyN, frame);
+}
+
+/*
 * Evaluates the special form QUOTE
 */
 Value *evalQuote(Value *args, Frame *frame){
@@ -154,16 +168,12 @@ Value *evalLet(Value *args, Frame *frame){
         current = cdr(current);
     }
 
-    //evaluate until the last expression of body in g and return the result
-    Value *bodyN = car(body);
-    while (cdr(body)->type != NULL_TYPE){
-        eval(bodyN, g);
-        body = cdr(body);
-        bodyN = car(body);
-    }
-    return eval(bodyN, g);
+    return evalBody(body, g);
 }
 
+/*
+* Evaluates the special form DEFINE
+*/
 Value *evalDefine(Value *args, Frame *frame){
     Value *voidType = makeNull();
     voidType->type = VOID_TYPE;
