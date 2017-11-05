@@ -294,34 +294,32 @@ Value *tokenize(){
 }
 
 /*
-* Handles displaying the string token.
+Helper function to print the escape characters of a string
 */
-void displayStr(Value *list){
+void printStr(char *s){
     int i = 0;
     printf("%c", '"');
-    while (list->s[i] != '\0'){
-        if (list->s[i] == '\n'){
+    while (s[i] != '\0'){
+        if (s[i] == '\n'){
             printf("\\n");
-        }else if (list->s[i] == '\t'){
+        }else if (s[i] == '\t'){
             printf("\\t");
-        }else if (list->s[i] == '\''){
+        }else if (s[i] == '\''){
             // originally thought this part should be printf("\\'")
             // but when testing out on Dr.Racket input "\'" printed "'"
             // and so modified to follow Dr.Racket
             printf("\'");
-        }else if (list->s[i] == '\"'){
+        }else if (s[i] == '\"'){
             printf("\\\"");
-        }else if (list->s[i] == '\\'){
+        }else if (s[i] == '\\'){
             printf("\\\\");
         }else{
-            printf("%c", list->s[i]);
+            printf("%c", s[i]);
         }
         i++;
     }
     printf("%c", '"');
-    printf(":string");
 }
-
 
 /*
 * Takes a linked list of tokens as input and displays those tokens one per line
@@ -360,7 +358,8 @@ void displayTokens(Value *list){
             displayTokens(list->c.cdr);
             break;
 		case STR_TYPE:
-			displayStr(list);
+			printStr(list->s);
+            printf(":string");
 			break;
         default:
             printf("\n");
