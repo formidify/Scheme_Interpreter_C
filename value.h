@@ -13,7 +13,8 @@ typedef enum {
    CLOSE_TYPE,
    BOOL_TYPE,
    SYMBOL_TYPE,
-   VOID_TYPE
+   VOID_TYPE,
+   CLOSURE_TYPE
 } valueType;
 
 struct Value {
@@ -24,6 +25,11 @@ struct Value {
       double d;
       char *s;
       bool b;
+	  struct Closure{
+		  struct Value *fp;
+		  struct Value *bod;
+		  struct Frame *fr;
+	  } cl;
       struct ConsCell {
          struct Value *car;
          struct Value *cdr;

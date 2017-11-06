@@ -9,6 +9,7 @@
 (quote "hello90()239.sd&")
 (quote (quote (1 2 3)))
 (quote (car(1 2 3)))
+((lambda (x) (quote x)) 1)
 
 (let ((x 1) (y 2)) x)
 (let ((x 1) (w 2) (z 2)) x w z 2 (if #t (if z #f)))

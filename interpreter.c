@@ -207,6 +207,42 @@ Value *evalDefine(Value *args, Frame *frame){
     return voidType;
 }
 
+Value *evalLambda(Value *args, Frame *frame){
+	Value *closureType = makeNull();
+	closureType->type = CLOSURE_TYPE;
+	Frame *g = makeNullFrame(frame);
+	closureType->cl.fr = g;
+    closureType->cl.fp = car(args);
+    closureType->cl.bod = cdr(args);
+    if(cdr(args)->type == NULL_TYPE){
+        evaluationError("LAMBDA requires at least two arguments.");
+    }
+
+    return closureType;
+}
+
+//closureType->cl.fr->type
+
+
+Value *evalClosureType(Value *tree, Frame *frame){
+	Value *lProcedure = car(tree);
+    Value *actualParam = cdr(tree);
+	
+	Value *cur = lProcedure->cl.fp;
+	while(cur->type != NULL_TYPE){
+		Value *variable = eval(car(actualParam), frame);
+        Value *newBinding = cons(cur,variable);
+        lProcedure->cl.fr->bindings = cons(newBinding, lProcedure->cl.fr->bindings);
+        cur= cdr(cur);
+    }
+	
+	return evalBody(lProcedure->cl.bod, lProcedure->cl.fr);
+	// must work on if statements for...
+	// if formal param is x
+	// else if formal param is (x)
+	// else if formal param is (x . y)
+}
+
 /*
 * Evaluates CONS_TYPE values from the parse tree
 */
@@ -229,7 +265,20 @@ Value *evalConsType(Value *tree, Frame *frame){
         result = evalLet(args, frame);
     } else if(!strcmp(first->s, "define")) {
         result = evalDefine(args, frame);
-    }
+	} else if(!strcmp(first->s, "lambda")){
+		result = evalLambda(args, frame);
+    } else if(car(first)->type == CONS_TYPE){
+		// it does not get here
+		printf("DO YOU EVEN GET HERE DOE");
+		result = evalConsType(first, frame);
+		Value *temp = result;
+		while (car(temp)->type != NULL_TYPE){
+			if (car(temp)->type == CLOSURE_TYPE){
+				result = eval(result, frame);
+			}
+			temp = cdr(temp);
+		}
+	}
     // ... other special forms here ...
     else {
         // not a recognized special form
@@ -260,6 +309,8 @@ Value *eval(Value *tree, Frame *frame){
             result = evalConsType(tree, frame);
             break;
         }
+		case CLOSURE_TYPE:
+			result = evalClosureType(tree, frame);
         default:
             break;
     }
