@@ -208,41 +208,80 @@ Value *evalDefine(Value *args, Frame *frame){
 }
 
 Value *evalLambda(Value *args, Frame *frame){
-	Value *closureType = makeNull();
-	closureType->type = CLOSURE_TYPE;
-	Frame *g = makeNullFrame(frame);
-	closureType->cl.fr = g;
-    closureType->cl.fp = car(args);
-    closureType->cl.bod = cdr(args);
-    if(cdr(args)->type == NULL_TYPE){
+    //also check if arguments and body are both cons_type
+    Value *closureType = makeNull();
+    closureType->type = CLOSURE_TYPE;
+    Frame *g = makeNullFrame(frame);
+    closureType->cl.fr = g;
+    closureType->cl.fp = car(car(args));
+    closureType->cl.bod = car(cdr(args));
+if(cdr(args)->type == NULL_TYPE){
         evaluationError("LAMBDA requires at least two arguments.");
     }
-
+    
     return closureType;
 }
 
 //closureType->cl.fr->type
 
 
-Value *evalClosureType(Value *tree, Frame *frame){
-	Value *lProcedure = car(tree);
-    Value *actualParam = cdr(tree);
-	
-	Value *cur = lProcedure->cl.fp;
-	while(cur->type != NULL_TYPE){
-		Value *variable = eval(car(actualParam), frame);
-        Value *newBinding = cons(cur,variable);
-        lProcedure->cl.fr->bindings = cons(newBinding, lProcedure->cl.fr->bindings);
-        cur= cdr(cur);
+// Value *evalClosureType(Value *tree, Frame *frame){
+//     Value *lProcedure = car(tree);
+//     Value *actualParam = cdr(tree);
+    
+//     Value *cur = lProcedure->cl.fp;
+//     while(cur->type != NULL_TYPE){
+//         Value *variable = eval(car(actualParam), frame);
+//         Value *newBinding = cons(cur,variable);
+//         lProcedure->cl.fr->bindings = cons(newBinding, lProcedure->cl.fr->bindings);
+//         cur= cdr(cur);
+//     }
+    
+//     return evalBody(lProcedure->cl.bod, lProcedure->cl.fr);
+    // must work on if statements for...
+    // if formal param is x
+    // else if formal param is (x)
+    // else if formal param is (x . y)
+//}
+
+Value *apply(Value *function, Value *args){
+    Frame *g = makeNullFrame(function->cl.fr);
+    Value *currentFormal = function->cl.fp;
+    Value *currentArgs = args;
+
+    //assume lambda formal arguments are not passed in a parenthesis
+    while (currentFormal->type != NULL_TYPE || currentArgs->type != NULL_TYPE) {
+        if (currentFormal->type == NULL_TYPE || currentArgs->type == NULL_TYPE){
+            evaluationError("Number of formal and actual parameters are not the same.");
+        }
+        Value *formal = car(currentFormal);
+        Value *arg = car(currentArgs);
+        if (formal->type == SYMBOL_TYPE){
+            checkDuplicateBinding(formal, g->bindings, false);
+            Value *newBinding = cons(formal, arg);
+            g->bindings = cons(newBinding, g->bindings);
+        }
+        else{
+            evaluationError("Non-identifiers cannot be bound");
+        }
+        currentFormal = cdr(currentFormal);
+        currentArgs = cdr(currentArgs);
     }
-	
-	return evalBody(lProcedure->cl.bod, lProcedure->cl.fr);
-	// must work on if statements for...
-	// if formal param is x
-	// else if formal param is (x)
-	// else if formal param is (x . y)
+    Value *result = eval(function->cl.bod, g);
+    return result;
 }
 
+//evaluate all the actual parameters
+Value *evalCombinations(Value *args, Frame *frame){
+    Value *returnArgs = makeNull();
+    while (args->type != NULL_TYPE){
+        Value *newArgs = eval(car(args), frame);
+        returnArgs = cons(newArgs, returnArgs);
+        args = cdr(args);
+    }
+    returnArgs = cons(args, returnArgs);
+    return returnArgs;
+}
 /*
 * Evaluates CONS_TYPE values from the parse tree
 */
@@ -253,11 +292,17 @@ Value *evalConsType(Value *tree, Frame *frame){
 
     // Sanity and error checking on first...
     if(first == NULL || (first->type != SYMBOL_TYPE
-        && first->type != CONS_TYPE)){
+        && first->type != CONS_TYPE && first->type != CLOSURE_TYPE)){
         evaluationError("Invalid syntax.");
     }
-
-    if (!strcmp(first->s, "if")) {
+    if (first->type == CONS_TYPE){
+        Value *newFirst = evalConsType(first, frame);
+        Value *newTree = cons(newFirst, args);
+        result = evalConsType(newTree, frame);
+    } else if (first->type == CLOSURE_TYPE){
+        Value *newArgs = evalCombinations(args, frame);
+        result = apply(first, newArgs);
+    } else if (!strcmp(first->s, "if")) {
         result = evalIf(args, frame);
     } else if(!strcmp(first->s, "quote")) {
         result = evalQuote(args, frame);
@@ -265,24 +310,16 @@ Value *evalConsType(Value *tree, Frame *frame){
         result = evalLet(args, frame);
     } else if(!strcmp(first->s, "define")) {
         result = evalDefine(args, frame);
-	} else if(!strcmp(first->s, "lambda")){
-		result = evalLambda(args, frame);
-    } else if(car(first)->type == CONS_TYPE){
-		// it does not get here
-		printf("DO YOU EVEN GET HERE DOE");
-		result = evalConsType(first, frame);
-		Value *temp = result;
-		while (car(temp)->type != NULL_TYPE){
-			if (car(temp)->type == CLOSURE_TYPE){
-				result = eval(result, frame);
-			}
-			temp = cdr(temp);
-		}
-	}
+    } else if(!strcmp(first->s, "lambda")){
+        result = evalLambda(args, frame);
+    } 
     // ... other special forms here ...
     else {
         // not a recognized special form
-        evaluationError("Unrecognized special form.");
+        Value *newSymbol = lookUpSymbol(first, frame);
+        Value *newTree = cons(newSymbol, args);
+        result = evalConsType(newTree, frame);
+        //evaluationError("Unrecognized special form.");
     }
     return result;
 }
@@ -309,8 +346,6 @@ Value *eval(Value *tree, Frame *frame){
             result = evalConsType(tree, frame);
             break;
         }
-		case CLOSURE_TYPE:
-			result = evalClosureType(tree, frame);
         default:
             break;
     }
