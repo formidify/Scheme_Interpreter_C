@@ -208,17 +208,17 @@ Value *evalDefine(Value *args, Frame *frame){
 }
 
 Value *evalLambda(Value *args, Frame *frame){
+    if (args->type != CONS_TYPE || cdr(args)->type == NULL_TYPE){
+        evaluationError("Incorrect number of arguments for LAMBDA.");
+    }
+
     //also check if arguments and body are both cons_type
     Value *closureType = makeNull();
     closureType->type = CLOSURE_TYPE;
-    Frame *g = makeNullFrame(frame);
-    closureType->cl.fr = g;
-    closureType->cl.fp = car(car(args));
-    closureType->cl.bod = car(cdr(args));
-if(cdr(args)->type == NULL_TYPE){
-        evaluationError("LAMBDA requires at least two arguments.");
-    }
-    
+    closureType->cl.fr = frame;
+    closureType->cl.fp = car(args);
+    closureType->cl.bod = cdr(args);
+
     return closureType;
 }
 
@@ -228,7 +228,7 @@ if(cdr(args)->type == NULL_TYPE){
 // Value *evalClosureType(Value *tree, Frame *frame){
 //     Value *lProcedure = car(tree);
 //     Value *actualParam = cdr(tree);
-    
+
 //     Value *cur = lProcedure->cl.fp;
 //     while(cur->type != NULL_TYPE){
 //         Value *variable = eval(car(actualParam), frame);
@@ -236,7 +236,7 @@ if(cdr(args)->type == NULL_TYPE){
 //         lProcedure->cl.fr->bindings = cons(newBinding, lProcedure->cl.fr->bindings);
 //         cur= cdr(cur);
 //     }
-    
+
 //     return evalBody(lProcedure->cl.bod, lProcedure->cl.fr);
     // must work on if statements for...
     // if formal param is x
@@ -312,7 +312,7 @@ Value *evalConsType(Value *tree, Frame *frame){
         result = evalDefine(args, frame);
     } else if(!strcmp(first->s, "lambda")){
         result = evalLambda(args, frame);
-    } 
+    }
     // ... other special forms here ...
     else {
         // not a recognized special form
@@ -406,6 +406,9 @@ void printResult(Value *result){
         case SYMBOL_TYPE:
     		printf("%s", result->s);
     		break;
+        case CLOSURE_TYPE:
+            printf("#<procedure>");
+            break;
         default:
             break;
     }
