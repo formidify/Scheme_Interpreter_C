@@ -212,7 +212,6 @@ Value *evalLambda(Value *args, Frame *frame){
         evaluationError("Incorrect number of arguments for LAMBDA.");
     }
 
-    //also check if arguments and body are both cons_type
     Value *closureType = makeNull();
     closureType->type = CLOSURE_TYPE;
     closureType->cl.fr = frame;
@@ -222,66 +221,46 @@ Value *evalLambda(Value *args, Frame *frame){
     return closureType;
 }
 
-//closureType->cl.fr->type
-
-
-// Value *evalClosureType(Value *tree, Frame *frame){
-//     Value *lProcedure = car(tree);
-//     Value *actualParam = cdr(tree);
-
-//     Value *cur = lProcedure->cl.fp;
-//     while(cur->type != NULL_TYPE){
-//         Value *variable = eval(car(actualParam), frame);
-//         Value *newBinding = cons(cur,variable);
-//         lProcedure->cl.fr->bindings = cons(newBinding, lProcedure->cl.fr->bindings);
-//         cur= cdr(cur);
-//     }
-
-//     return evalBody(lProcedure->cl.bod, lProcedure->cl.fr);
-    // must work on if statements for...
-    // if formal param is x
-    // else if formal param is (x)
-    // else if formal param is (x . y)
-//}
-
 Value *apply(Value *function, Value *args){
+    if(function->type != CLOSURE_TYPE){
+        evaluationError("Cannot apply to non-procedure.");
+    }
     Frame *g = makeNullFrame(function->cl.fr);
-    Value *currentFormal = function->cl.fp;
-    Value *currentArgs = args;
+    Value *formals = function->cl.fp;
+    Value *actuals = args;
 
-    //assume lambda formal arguments are not passed in a parenthesis
-    while (currentFormal->type != NULL_TYPE || currentArgs->type != NULL_TYPE) {
-        if (currentFormal->type == NULL_TYPE || currentArgs->type == NULL_TYPE){
-            evaluationError("Number of formal and actual parameters are not the same.");
-        }
-        Value *formal = car(currentFormal);
-        Value *arg = car(currentArgs);
+    while (formals->type != NULL_TYPE && actuals->type != NULL_TYPE) {
+        Value *formal = car(formals);
+        Value *actual = car(actuals);
         if (formal->type == SYMBOL_TYPE){
             checkDuplicateBinding(formal, g->bindings, false);
-            Value *newBinding = cons(formal, arg);
+            Value *newBinding = cons(formal, actual);
             g->bindings = cons(newBinding, g->bindings);
         }
         else{
             evaluationError("Non-identifiers cannot be bound");
         }
-        currentFormal = cdr(currentFormal);
-        currentArgs = cdr(currentArgs);
+        formals = cdr(formals);
+        actuals = cdr(actuals);
     }
-    Value *result = eval(function->cl.bod, g);
-    return result;
+    if (formals->type != NULL_TYPE || actuals->type != NULL_TYPE){
+        evaluationError("Number of formal and actual params don't match.");
+    }
+    return evalBody(function->cl.bod, g);
 }
 
-//evaluate all the actual parameters
-Value *evalCombinations(Value *args, Frame *frame){
-    Value *returnArgs = makeNull();
-    while (args->type != NULL_TYPE){
-        Value *newArgs = eval(car(args), frame);
-        returnArgs = cons(newArgs, returnArgs);
-        args = cdr(args);
+Value *evalCombination(Value *first, Value *args, Frame *frame){
+    Value *function = eval(first, frame);
+    Value *actuals = makeNull();
+    Value *current = args;
+    while(current->type != NULL_TYPE){
+        Value *actual = eval(car(current), frame);
+        actuals = cons(actual, actuals);
+        current = cdr(current);
     }
-    returnArgs = cons(args, returnArgs);
-    return returnArgs;
+    return apply(function, reverse(actuals));
 }
+
 /*
 * Evaluates CONS_TYPE values from the parse tree
 */
@@ -295,14 +274,7 @@ Value *evalConsType(Value *tree, Frame *frame){
         && first->type != CONS_TYPE && first->type != CLOSURE_TYPE)){
         evaluationError("Invalid syntax.");
     }
-    if (first->type == CONS_TYPE){
-        Value *newFirst = evalConsType(first, frame);
-        Value *newTree = cons(newFirst, args);
-        result = evalConsType(newTree, frame);
-    } else if (first->type == CLOSURE_TYPE){
-        Value *newArgs = evalCombinations(args, frame);
-        result = apply(first, newArgs);
-    } else if (!strcmp(first->s, "if")) {
+    if (!strcmp(first->s, "if")) {
         result = evalIf(args, frame);
     } else if(!strcmp(first->s, "quote")) {
         result = evalQuote(args, frame);
@@ -315,11 +287,7 @@ Value *evalConsType(Value *tree, Frame *frame){
     }
     // ... other special forms here ...
     else {
-        // not a recognized special form
-        Value *newSymbol = lookUpSymbol(first, frame);
-        Value *newTree = cons(newSymbol, args);
-        result = evalConsType(newTree, frame);
-        //evaluationError("Unrecognized special form.");
+        result = evalCombination(first, args, frame);
     }
     return result;
 }
