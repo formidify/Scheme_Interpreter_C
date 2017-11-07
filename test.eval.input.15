@@ -1,3 +1,2 @@
 (define lambda 4) (define quote 5)
 (let ((lambda 6) (quote 7)) (define quote 8) (define lambda 9) (if #f quote lambda))
-(define fun (lambda (x y) (if #t x y)))
