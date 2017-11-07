@@ -14,6 +14,7 @@
 #include <string.h>
 
 static Frame *topFrame;
+static int level;
 
 /*
 * Prints a given error message and safely exits the program
@@ -38,9 +39,13 @@ Frame *makeNullFrame(Frame *parent){
 * Looks up symbol in the given frame, and if not found,
 * continues searching the parents until the binding is found.
 */
-Value *lookUpSymbol(Value *symbol, Frame *frame){
+Value *lookUpSymbol(Value *symbol, Frame *frame, bool giveError){
     if(frame == NULL){
-        evaluationError("Binding for symbol not found.");
+        if(giveError){
+            evaluationError("Binding for symbol not found.");
+        } else{
+            return NULL;
+        }
     }
     Value *current = frame->bindings;
     while(current->type != NULL_TYPE){
@@ -50,7 +55,7 @@ Value *lookUpSymbol(Value *symbol, Frame *frame){
         }
         current = cdr(current);
     }
-    return lookUpSymbol(symbol, frame->parent);
+    return lookUpSymbol(symbol, frame->parent, giveError);
 }
 
 /*
@@ -108,10 +113,15 @@ bool isDefinition(Value *expr){
 * Evaluates a body of an expression, returning the result
 * of the last expression in the body
 */
+Value *evalDefine(Value *tree, Frame *frame, bool inBody);
 Value *evalBody(Value *body, Frame *frame){
     Value *bodyN = car(body);
     while (cdr(body)->type != NULL_TYPE){
-        eval(bodyN, frame);
+        if(isDefinition(bodyN)){
+            evalDefine(cdr(bodyN), frame, true);
+        } else {
+            eval(bodyN, frame);
+        }
         body = cdr(body);
         bodyN = car(body);
     }
@@ -203,7 +213,10 @@ Value *evalLambda(Value *args, Frame *frame){
 /*
 * Evaluates the special form DEFINE
 */
-Value *evalDefine(Value *args, Frame *frame){
+Value *evalDefine(Value *args, Frame *frame, bool inBody){
+    if(!inBody && level != 1){
+        evaluationError("Definitions allowed at top level or in body only.");
+    }
     Value *result = NULL;
     Value *voidType = makeNull();
     voidType->type = VOID_TYPE;
@@ -303,14 +316,18 @@ Value *evalConsType(Value *tree, Frame *frame){
         && first->type != CONS_TYPE && first->type != CLOSURE_TYPE)){
         evaluationError("Invalid syntax.");
     }
-    if (!strcmp(first->s, "if")) {
+
+    if(first->type == SYMBOL_TYPE
+        && lookUpSymbol(first, frame, false) != NULL){
+        result = evalCombination(first, args, frame);
+    }else if (!strcmp(first->s, "if")) {
         result = evalIf(args, frame);
     } else if(!strcmp(first->s, "quote")) {
         result = evalQuote(args, frame);
     } else if(!strcmp(first->s, "let")) {
         result = evalLet(args, frame);
     } else if(!strcmp(first->s, "define")) {
-        result = evalDefine(args, frame);
+        result = evalDefine(args, frame, false);
     } else if(!strcmp(first->s, "lambda")){
         result = evalLambda(args, frame);
     }
@@ -327,6 +344,7 @@ Value *evalConsType(Value *tree, Frame *frame){
 * representing the value
 */
 Value *eval(Value *tree, Frame *frame){
+    level++;
     assert(tree != NULL);
     Value *result;
     switch (tree->type) {
@@ -337,7 +355,7 @@ Value *eval(Value *tree, Frame *frame){
             return tree;
             break;
         case SYMBOL_TYPE:
-            return lookUpSymbol(tree, frame);
+            return lookUpSymbol(tree, frame, true);
             break;
         case CONS_TYPE: {
             result = evalConsType(tree, frame);
@@ -421,6 +439,7 @@ void interpret(Value *tree){
     assert(tree != NULL);
     Value *current = tree;
     while(current->type != NULL_TYPE){
+        level = 0;
         Value *result = eval(car(current), topFrame);
         printResult(result);
         if(result->type != VOID_TYPE){

@@ -11,3 +11,4 @@
 "bbb"
 33
 "no vars"
+Evaluation error: Definitions cannot be last in body.
