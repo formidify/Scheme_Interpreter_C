@@ -1,0 +1,5 @@
+((lambda (x) (quote x)) "hello")
+((lambda (x) (quote x)) 1)
+((lambda (x y z) (if x y z)) #t "hello" "not true")
+((lambda (x y z) (if x y z)) #f "hello" "not true")
+((lambda (x) (if x "hello" "not true")) #t)

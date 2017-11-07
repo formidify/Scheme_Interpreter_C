@@ -45,3 +45,5 @@ x
 (y)
 ;(x 1 2 3)
 ;(lambda ())
+
+((lambda (x) (quote x)) "hello")
