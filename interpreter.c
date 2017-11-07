@@ -255,11 +255,34 @@ Value *evalDefine(Value *args, Frame *frame, bool inBody){
     return voidType;
 }
 
+Value *primitiveAdd(Value *args) {
+    return NULL;
+}
+
+Value *primitiveIsNull(Value *args) {
+    return NULL;
+}
+
+Value *primitiveCar(Value *args) {
+    return NULL;
+}
+
+Value *primitiveCdr(Value *args) {
+    return NULL;
+}
+
+Value *primitiveCons(Value *args) {
+    return NULL;
+}
+
 /*
 * Applies the value of the first expression in a combination to the
 * remaining values.
 */
 Value *apply(Value *function, Value *args){
+    if(function->type == PRIMITIVE_TYPE){
+        return (function->pf)(args);
+    }
     if(function->type != CLOSURE_TYPE){
         evaluationError("Cannot apply to non-procedure.");
     }
@@ -429,14 +452,30 @@ void printResult(Value *result){
     }
 }
 
+void bind(char *name, Value *(*function)(Value *), Frame *frame) {
+   Value *value = makeNull();
+   value->type = PRIMITIVE_TYPE;
+   value->pf = function;
+   Value *var = makeNull();
+   var->type = SYMBOL_TYPE;
+   var->s = name;
+   Value *binding = cons(var, value);
+   frame->bindings = cons(binding, frame->bindings);
+}
+
 /*
 * Handles a list of S-expressions (as in a Scheme program),
 * calls eval on each S-expression in the top-level (global) environment,
 * and prints each result in turn
 */
 void interpret(Value *tree){
-    topFrame = makeNullFrame(NULL);
     assert(tree != NULL);
+    topFrame = makeNullFrame(NULL);
+    bind("+", primitiveAdd, topFrame);
+    bind("null?", primitiveIsNull, topFrame);
+    bind("null?", primitiveCar, topFrame);
+    bind("null?", primitiveCdr, topFrame);
+    bind("null?", primitiveCons, topFrame);
     Value *current = tree;
     while(current->type != NULL_TYPE){
         level = 0;
