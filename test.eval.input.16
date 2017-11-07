@@ -1,0 +1,3 @@
+(let ((quote #t)) (define quote (lambda (a b) quote))
+(define fun (lambda (x y) (if #t x y)))
+(fun quote 4))
