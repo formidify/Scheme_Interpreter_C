@@ -3,3 +3,11 @@
 ((lambda (x y z) (if x y z)) #t "hello" "not true")
 ((lambda (x y z) (if x y z)) #f "hello" "not true")
 ((lambda (x) (if x "hello" "not true")) #t)
+(define preggers
+  (lambda (lst)
+    (if #t
+        lst
+        "don't return this!")))
+
+(preggers (quote (1 2 3)))
+(preggers (1 2 3))
