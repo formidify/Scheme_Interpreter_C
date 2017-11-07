@@ -95,6 +95,16 @@ void validateBindings(Value *bindings){
 }
 
 /*
+* Returns true if the expression is a definition, returns false otherwise.
+*/
+bool isDefinition(Value *expr){
+    if(expr->type == CONS_TYPE && !strcmp(car(expr)->s, "define")){
+        return true;
+    }
+    return false;
+}
+
+/*
 * Evaluates a body of an expression, returning the result
 * of the last expression in the body
 */
@@ -104,6 +114,9 @@ Value *evalBody(Value *body, Frame *frame){
         eval(bodyN, frame);
         body = cdr(body);
         bodyN = car(body);
+    }
+    if(isDefinition(bodyN)){
+        evaluationError("Definitions cannot be last in body.");
     }
     return eval(bodyN, frame);
 }
@@ -172,41 +185,8 @@ Value *evalLet(Value *args, Frame *frame){
 }
 
 /*
-* Evaluates the special form DEFINE
+* Evaluates the special form LAMBDA
 */
-Value *evalDefine(Value *args, Frame *frame){
-    Value *voidType = makeNull();
-    voidType->type = VOID_TYPE;
-
-    if(frame != topFrame){
-        evaluationError("Define only supported at the top level.");
-    }
-
-    if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE ||
-        cdr(cdr(args))->type != NULL_TYPE){
-        evaluationError("Incorrect number of arguments for DEFINE.");
-    }
-
-    Value *var = car(args);
-    Value *expr = car(cdr(args));
-
-    if(var->type != SYMBOL_TYPE){
-        evaluationError("Variable for DEFINE must be an identifier.");
-    }
-
-    Value *newBinding = checkDuplicateBinding(var, frame->bindings, true);
-    Value *result = eval(expr, frame);
-
-    if(newBinding == NULL){
-        newBinding = cons(var, result);
-        frame->bindings = cons(newBinding, frame->bindings);
-    } else {
-        *newBinding = *(cons(var, result));
-    }
-
-    return voidType;
-}
-
 Value *evalLambda(Value *args, Frame *frame){
     if (args->type != CONS_TYPE || cdr(args)->type == NULL_TYPE){
         evaluationError("Incorrect number of arguments for LAMBDA.");
@@ -217,10 +197,55 @@ Value *evalLambda(Value *args, Frame *frame){
     closureType->cl.fr = frame;
     closureType->cl.fp = car(args);
     closureType->cl.bod = cdr(args);
-
     return closureType;
 }
 
+/*
+* Evaluates the special form DEFINE
+*/
+Value *evalDefine(Value *args, Frame *frame){
+    Value *result = NULL;
+    Value *voidType = makeNull();
+    voidType->type = VOID_TYPE;
+
+    if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE ||
+        cdr(cdr(args))->type != NULL_TYPE){
+        evaluationError("Incorrect number of arguments for DEFINE.");
+    }
+
+    Value *var = car(args);
+    if(var->type == CONS_TYPE){
+        Value *sugar = var;
+        var = car(sugar);
+        Value *formals = makeNull();
+        Value *current = cdr(sugar);
+        while(current->type != NULL_TYPE){
+            formals = cons(car(current), formals);
+            current = cdr(current);
+        }
+        result = evalLambda(cons(reverse(formals), cdr(args)), frame);
+    }
+    if(var->type != SYMBOL_TYPE){
+        evaluationError("Cannot bind to non-identifier.");
+    }
+    Value *newBinding = checkDuplicateBinding(var, frame->bindings, true);
+    if(result == NULL){
+        result = eval(car(cdr(args)), frame);
+    }
+
+    if(newBinding == NULL){
+        newBinding = cons(var, result);
+        frame->bindings = cons(newBinding, frame->bindings);
+    } else {
+        *newBinding = *(cons(var, result));
+    }
+    return voidType;
+}
+
+/*
+* Applies the value of the first expression in a combination to the
+* remaining values.
+*/
 Value *apply(Value *function, Value *args){
     if(function->type != CLOSURE_TYPE){
         evaluationError("Cannot apply to non-procedure.");
@@ -246,9 +271,13 @@ Value *apply(Value *function, Value *args){
     if (formals->type != NULL_TYPE || actuals->type != NULL_TYPE){
         evaluationError("Number of formal and actual params don't match.");
     }
+
     return evalBody(function->cl.bod, g);
 }
 
+/*
+* Evaluates expressions in a combination
+*/
 Value *evalCombination(Value *first, Value *args, Frame *frame){
     Value *function = eval(first, frame);
     Value *actuals = makeNull();
