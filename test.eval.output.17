@@ -1,0 +1,6 @@
+(1 . 2)
+(1 2 . 3)
+((1 . 2) . 3)
+(1 2 3)
+("hi" . "bleh")
+Evaluation error: Primitive cons requires two arguments.

@@ -14,7 +14,8 @@ typedef enum {
    BOOL_TYPE,
    SYMBOL_TYPE,
    VOID_TYPE,
-   CLOSURE_TYPE
+   CLOSURE_TYPE,
+   PRIMITIVE_TYPE
 } valueType;
 
 struct Value {
@@ -34,6 +35,7 @@ struct Value {
          struct Value *car;
          struct Value *cdr;
       } c;
+      struct Value *(*pf)(struct Value *);
    };
 };
 
