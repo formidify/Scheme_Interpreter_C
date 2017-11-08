@@ -30,7 +30,22 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 				(*depth)--;
 				return tree;
 			} else{
-				newList = cons(car(current), newList);
+				if(cdr(current)->type != NULL_TYPE
+					&& car(cdr(current))->type == DOT_TYPE){
+					Value *last = car(current);
+					current = cdr(cdr(current));
+					if(current->type != NULL_TYPE){
+						newList = cons(car(current), last);
+					} else{
+						printf("Syntax error: invalid dotted pair.\n");
+						texit(0);
+					}
+				} else if(car(current)->type != DOT_TYPE){
+					newList = cons(car(current), newList);
+				} else{
+					printf("Syntax error: invalid dotted pair.\n");
+					texit(0);
+				}
 				current = cdr(current);
 			}
 		}

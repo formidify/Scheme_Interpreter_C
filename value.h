@@ -3,19 +3,20 @@
 #include <stdbool.h>
 
 typedef enum {
-   PTR_TYPE,
-   INT_TYPE,
-   DOUBLE_TYPE,
-   STR_TYPE,
-   CONS_TYPE,
-   NULL_TYPE,
-   OPEN_TYPE,
-   CLOSE_TYPE,
-   BOOL_TYPE,
-   SYMBOL_TYPE,
-   VOID_TYPE,
-   CLOSURE_TYPE,
-   PRIMITIVE_TYPE
+    PTR_TYPE,
+    INT_TYPE,
+    DOUBLE_TYPE,
+    STR_TYPE,
+    CONS_TYPE,
+    NULL_TYPE,
+    OPEN_TYPE,
+    CLOSE_TYPE,
+    DOT_TYPE,
+    BOOL_TYPE,
+    SYMBOL_TYPE,
+    VOID_TYPE,
+    CLOSURE_TYPE,
+    PRIMITIVE_TYPE
 } valueType;
 
 struct Value {

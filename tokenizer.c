@@ -244,6 +244,18 @@ Value *tokenizeString(){
     return strType;
 }
 
+Value *tokenizeDot(char charRead){
+    char lookAhead = fgetc(stdin);
+    if(lookAhead == ' '){
+        ungetc(lookAhead, stdin);
+        Value *dotType = makeNull();
+        dotType->type = DOT_TYPE;
+        return dotType;
+    }
+    ungetc(lookAhead, stdin);
+    return tokenizeNumber(charRead, false, true);
+}
+
 /*
 * Reads stdin in its entirety and returns a linked list consisting of
 * all tokens found.
@@ -268,8 +280,8 @@ Value *tokenize(){
             Value *withSign = tokenizeSign(charRead);
             list = cons(withSign, list);
         } else if(charRead == '.'){
-            Value *numberType = tokenizeNumber(charRead, false, true);
-            list = cons(numberType, list);
+            Value *token = tokenizeDot(charRead);
+            list = cons(token, list);
         } else if(isDigit(charRead)){
             Value *numberType = tokenizeNumber(charRead, false, false);
             list = cons(numberType, list);
