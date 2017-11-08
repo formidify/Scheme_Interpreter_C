@@ -25,15 +25,6 @@ void evaluationError(char *errorMsg){
 }
 
 /*
-* Creates a VOID_TYPE value and returns a pointer to it
-*/
-Value *makeVoidValue(){
-    Value *voidValue = makeNull();
-    voidValue->type = VOID_TYPE;
-    return voidValue;
-}
-
-/*
 * Creates a new frame with the specified parent
 * and an empty list of bindings
 */
@@ -147,7 +138,7 @@ Value *evalQuote(Value *args, Frame *frame){
     if(args->type == NULL_TYPE || cdr(args)->type != NULL_TYPE){
         evaluationError("QUOTE requires exactly one argument.");
     }
-	return car(args);
+	return args;
 }
 
 /*
@@ -163,7 +154,9 @@ Value *evalIf(Value *args, Frame *frame){
     Value *test = eval(car(args), frame);
     if (test->type == BOOL_TYPE && test->b == false){
         if (cdr(cdr(args))->type == NULL_TYPE){
-            return makeVoidValue();
+            Value *voidValue = makeNull();
+            voidValue->type = VOID_TYPE;
+            return voidValue;
         }
         return eval(car(cdr(cdr(args))), frame);
     }
@@ -231,14 +224,14 @@ void validateDefine(bool inBody, Value *args){
         evaluationError("Incorrect number of arguments for DEFINE.");
     }
 }
-
 /*
 * Evaluates the special form DEFINE
 */
 Value *evalDefine(Value *args, Frame *frame, bool inBody){
     validateDefine(inBody, args);
     Value *result = NULL;
-    Value *voidType = makeVoidValue();
+    Value *voidType = makeNull();
+    voidType->type = VOID_TYPE;
 
     Value *var = car(args);
     if(var->type == CONS_TYPE){
@@ -269,39 +262,11 @@ Value *evalDefine(Value *args, Frame *frame, bool inBody){
     return voidType;
 }
 
-Value *primitiveAdd(Value *args) {
-    return NULL;
-}
-
-Value *primitiveIsNull(Value *args) {
-    return NULL;
-}
-
-Value *primitiveCar(Value *args) {
-    return NULL;
-}
-
-Value *primitiveCdr(Value *args) {
-    return NULL;
-}
-
-Value *primitiveCons(Value *args) {
-    if(args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE
-        || cdr(cdr(args))->type != NULL_TYPE){
-        evaluationError("Primitive cons requires two arguments.");
-    }
-    Value *consType = cons(car(args), car(cdr(args)));
-    return cons(consType, makeNull());
-}
-
 /*
 * Applies the value of the first expression in a combination to the
 * remaining values.
 */
 Value *apply(Value *function, Value *args){
-    if(function->type == PRIMITIVE_TYPE){
-        return (function->pf)(args);
-    }
     if(function->type != CLOSURE_TYPE){
         evaluationError("Cannot apply to non-procedure.");
     }
@@ -412,51 +377,27 @@ Value *eval(Value *tree, Frame *frame){
 /*
 * Prints the result of CONS_TYPE
 */
-// void printResult(Value *result);
-// void printEvalConsType(Value *result){
-// 	if(car(result)->type == CONS_TYPE){
-// 		printf("(");
-// 		printResult(car(result));
-//         printf(")");
-// 	} else {
-// 		if (car(result)->type == NULL_TYPE){
-// 			printf("()");
-// 		}
-// 		else{
-// 			printResult(car(result));
-// 		}
-// 	}
-//
-//     if(cdr(result)->type != NULL_TYPE){
-//         printf(" ");
-//     }
-//     printResult(cdr(result));
-// }
-
-/*
-* Prints the result of CONS_TYPE
-*/
 void printResult(Value *result);
 void printEvalConsType(Value *result){
-    printResult(car(result));
+	if(car(result)->type == CONS_TYPE){
+		printf("(");
+		printResult(car(result));
+        printf(")");
+	} else {
+		if (car(result)->type == NULL_TYPE){
+			printf("()");
+		}
+		else{
+			printResult(car(result));
+		}
+	}
+
     if(cdr(result)->type != NULL_TYPE){
         printf(" ");
-        printEvalConsType(cdr(result));
     }
+    printResult(cdr(result));
 }
 
-/*
-* Prints the result of BOOL_TYPE
-*/
-void printResult(Value *result);
-void printBoolType(Value *result){
-    if (result->b) {
-        printf("#t");
-    }
-    else{
-        printf("#f");
-    }
-}
 
 /*
 * Prints the result of evaluating an expression
@@ -466,7 +407,12 @@ void printResult(Value *result){
     assert(result != NULL);
     switch(result->type){
         case BOOL_TYPE:
-            printBoolType(result);
+            if (result->b) {
+                printf("#t");
+            }
+            else {
+                printf("#f");
+            }
             break;
         case INT_TYPE:
             printf("%i", result->i);
@@ -478,9 +424,7 @@ void printResult(Value *result){
             printStr(result->s);
             break;
 		case CONS_TYPE:
-            printf("(");
 			printEvalConsType(result);
-            printf(")");
 			break;
         case SYMBOL_TYPE:
     		printf("%s", result->s);
@@ -488,23 +432,9 @@ void printResult(Value *result){
         case CLOSURE_TYPE:
             printf("#<procedure>");
             break;
-        case NULL_TYPE:
-            printf("()");
-            break;
         default:
             break;
     }
-}
-
-void bind(char *name, Value *(*function)(Value *), Frame *frame) {
-   Value *value = makeNull();
-   value->type = PRIMITIVE_TYPE;
-   value->pf = function;
-   Value *var = makeNull();
-   var->type = SYMBOL_TYPE;
-   var->s = name;
-   Value *binding = cons(var, value);
-   frame->bindings = cons(binding, frame->bindings);
 }
 
 /*
@@ -513,13 +443,8 @@ void bind(char *name, Value *(*function)(Value *), Frame *frame) {
 * and prints each result in turn
 */
 void interpret(Value *tree){
-    assert(tree != NULL);
     topFrame = makeNullFrame(NULL);
-    bind("+", primitiveAdd, topFrame);
-    bind("null?", primitiveIsNull, topFrame);
-    bind("car", primitiveCar, topFrame);
-    bind("cdr", primitiveCdr, topFrame);
-    bind("cons", primitiveCons, topFrame);
+    assert(tree != NULL);
     Value *current = tree;
     while(current->type != NULL_TYPE){
         level = 0;
