@@ -270,7 +270,32 @@ Value *evalDefine(Value *args, Frame *frame, bool inBody){
 }
 
 Value *primitiveAdd(Value *args) {
-    return NULL;
+    float sum = 0;
+    Value *numberValue = makeNull();
+    numberValue->type = INT_TYPE;
+    Value *current = args;
+    Value *val;
+    while (current->type != NULL_TYPE) {
+        val = car(current);
+        if (val->type != INT_TYPE && val->type != DOUBLE_TYPE){
+            evaluationError("+ only takes numbers as arguments.");
+        }
+        if (val->type == DOUBLE_TYPE){
+            numberValue->type = DOUBLE_TYPE;
+            sum = sum + val->d;
+        }
+        else{
+            sum = sum + val->i;
+        }
+        current = cdr(current);
+    }
+    if (numberValue->type == DOUBLE_TYPE){
+        numberValue->d = sum;
+    }
+    else{
+        numberValue->i = (int) sum;
+    }
+    return numberValue;
 }
 
 Value *primitiveIsNull(Value *args) {
