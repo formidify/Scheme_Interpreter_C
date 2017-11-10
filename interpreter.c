@@ -299,15 +299,36 @@ Value *primitiveAdd(Value *args) {
 }
 
 Value *primitiveIsNull(Value *args) {
-    return NULL;
+	if (cdr(args)->type != NULL_TYPE){
+		evaluationError("Incorrect number of arguments for null?.");
+	}
+	
+	Value *nullAnswer = makeNull();
+	nullAnswer->type = BOOL_TYPE;
+	if (car(args)->type != NULL_TYPE){
+		nullAnswer->b = false;
+	}else{
+		nullAnswer->b = true;
+	}
+	return nullAnswer;
 }
 
 Value *primitiveCar(Value *args) {
-    return NULL;
+	if (cdr(args)->type != NULL_TYPE){
+		evaluationError("Incorrect number of arguments for car.");
+	}else if (car(args)->type != CONS_TYPE){
+		evaluationError("Argument is not a cons type.");
+	}
+	return car(car(args));
 }
 
 Value *primitiveCdr(Value *args) {
-    return NULL;
+    if (cdr(args)->type != NULL_TYPE){
+		evaluationError("Incorrect number of arguments for cdr.");
+	}else if (car(args)->type != CONS_TYPE){
+		evaluationError("Argument is not a cons type.");
+	}
+	return cdr(car(args));
 }
 
 Value *primitiveCons(Value *args) {

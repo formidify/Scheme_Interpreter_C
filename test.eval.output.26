@@ -1,0 +1,8 @@
+#f
+#t
+"a"
+("b" "c")
+1
+(2 3)
+#f
+Evaluation error: Incorrect number of arguments for null?.
