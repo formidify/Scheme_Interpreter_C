@@ -37,7 +37,7 @@ Value *makeVoidValue(){
 * Creates a new frame with the specified parent
 * and an empty list of bindings
 */
-Frame *makeNullFrame(Frame *parent){
+Frame *makeFrame(Frame *parent){
     Frame *newFrame = talloc(sizeof(Frame));
     newFrame->parent = parent;
     newFrame->bindings = makeNull();
@@ -175,7 +175,7 @@ Value *evalIf(Value *args, Frame *frame){
 */
 Value *evalLet(Value *args, Frame *frame){
     //create new frame g with frame as parent
-    Frame *g = makeNullFrame(frame);
+    Frame *g = makeFrame(frame);
 
     //get list of bindings and body from args
     Value *bindings = car(args);
@@ -202,13 +202,26 @@ Value *evalLet(Value *args, Frame *frame){
 }
 
 /*
+* Validates formals are identifiers
+*/
+void validateFormals(Value *args){
+    Value *formal = args;
+    while(formal->type != NULL_TYPE){
+        if(car(formal)->type != SYMBOL_TYPE){
+            evaluationError("Formal must be an identifier.");
+        }
+        formal = cdr(formal);
+    }
+}
+
+/*
 * Evaluates the special form LAMBDA
 */
 Value *evalLambda(Value *args, Frame *frame){
     if (args->type != CONS_TYPE || cdr(args)->type == NULL_TYPE){
         evaluationError("Incorrect number of arguments for LAMBDA.");
     }
-
+    validateFormals(car(args));
     Value *closureType = makeNull();
     closureType->type = CLOSURE_TYPE;
     closureType->cl.fr = frame;
@@ -269,6 +282,9 @@ Value *evalDefine(Value *args, Frame *frame, bool inBody){
     return voidType;
 }
 
+/*
+* Primitive function that sums any number of numbers
+*/
 Value *primitiveAdd(Value *args) {
     float sum = 0;
     Value *numberValue = makeNull();
@@ -298,11 +314,15 @@ Value *primitiveAdd(Value *args) {
     return numberValue;
 }
 
+/*
+* Primitive function that returns true if the list is null,
+* returns false otherwise.
+*/
 Value *primitiveIsNull(Value *args) {
-	if (cdr(args)->type != NULL_TYPE){
+	if (args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
 		evaluationError("Incorrect number of arguments for null?.");
 	}
-	
+
 	Value *nullAnswer = makeNull();
 	nullAnswer->type = BOOL_TYPE;
 	if (car(args)->type != NULL_TYPE){
@@ -313,24 +333,33 @@ Value *primitiveIsNull(Value *args) {
 	return nullAnswer;
 }
 
+/*
+* Primitive function that returns the car of a cons type
+*/
 Value *primitiveCar(Value *args) {
-	if (cdr(args)->type != NULL_TYPE){
+	if (args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
 		evaluationError("Incorrect number of arguments for car.");
-	}else if (car(args)->type != CONS_TYPE){
+	} else if (car(args)->type != CONS_TYPE){
 		evaluationError("Argument is not a cons type.");
 	}
 	return car(car(args));
 }
 
+/*
+* Primitive function that returns the cdr of a cons type
+*/
 Value *primitiveCdr(Value *args) {
-    if (cdr(args)->type != NULL_TYPE){
+    if (args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
 		evaluationError("Incorrect number of arguments for cdr.");
-	}else if (car(args)->type != CONS_TYPE){
+	} else if (car(args)->type != CONS_TYPE){
 		evaluationError("Argument is not a cons type.");
 	}
 	return cdr(car(args));
 }
 
+/*
+* Primitive function that takes two values and returns a cons pair
+*/
 Value *primitiveCons(Value *args) {
     if(args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE
         || cdr(cdr(args))->type != NULL_TYPE){
@@ -350,7 +379,7 @@ Value *apply(Value *function, Value *args){
     if(function->type != CLOSURE_TYPE){
         evaluationError("Cannot apply to non-procedure.");
     }
-    Frame *g = makeNullFrame(function->cl.fr);
+    Frame *g = makeFrame(function->cl.fr);
     Value *formals = function->cl.fp;
     Value *actuals = args;
 
@@ -398,7 +427,7 @@ Value *evalConsType(Value *tree, Frame *frame){
     Value *first = car(tree);
     Value *args = cdr(tree);
 
-    // Sanity and error checking on first...
+    // Sanity and error checking on first
     if(first == NULL || (first->type != SYMBOL_TYPE
         && first->type != CONS_TYPE && first->type != CLOSURE_TYPE)){
         evaluationError("Invalid syntax.");
@@ -418,7 +447,6 @@ Value *evalConsType(Value *tree, Frame *frame){
     } else if(!strcmp(first->s, "lambda")){
         result = evalLambda(args, frame);
     }
-    // ... other special forms here ...
     else {
         result = evalCombination(first, args, frame);
     }
@@ -522,6 +550,10 @@ void printResult(Value *result){
     }
 }
 
+/*
+* Binds a given primitive function to a specific variable name in
+* the specified frame.
+*/
 void bind(char *name, Value *(*function)(Value *), Frame *frame) {
    Value *value = makeNull();
    value->type = PRIMITIVE_TYPE;
@@ -540,7 +572,7 @@ void bind(char *name, Value *(*function)(Value *), Frame *frame) {
 */
 void interpret(Value *tree){
     assert(tree != NULL);
-    topFrame = makeNullFrame(NULL);
+    topFrame = makeFrame(NULL);
     bind("+", primitiveAdd, topFrame);
     bind("null?", primitiveIsNull, topFrame);
     bind("car", primitiveCar, topFrame);

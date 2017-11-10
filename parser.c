@@ -14,6 +14,14 @@
 #include <string.h>
 
 /*
+* Prints a given error message and safely exits the program
+*/
+void syntaxError(char* errorMsg){
+	printf("Syntax Error: %s\n", errorMsg);
+	texit(0);
+}
+
+/*
 * Takes in a pre-existing tree, a token to add to it, and a pointer
 * to an integer depth, which is updated to represent the number of
 * unclosed open parentheses in the parse tree. The parse tree is
@@ -37,20 +45,17 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 					if(current->type != NULL_TYPE){
 						newList = cons(car(current), last);
 					} else{
-						printf("Syntax error: invalid dotted pair.\n");
-						texit(0);
+						syntaxError("Invalid dotted pair.");
 					}
 				} else if(car(current)->type != DOT_TYPE){
 					newList = cons(car(current), newList);
 				} else{
-					printf("Syntax error: invalid dotted pair.\n");
-					texit(0);
+					syntaxError("Invalid dotted pair.");
 				}
 				current = cdr(current);
 			}
 		}
-		printf("Syntax error: too many close parentheses\n");
-		texit(0);
+		syntaxError("Syntax error: too many close parentheses.");
 	} else{
 		if(token->type == OPEN_TYPE){
 			(*depth)++;
@@ -77,8 +82,7 @@ Value *parse(Value *tokens){
 		current = cdr(current);
 	}
 	if (depth != 0) {
-		printf("Syntax error: not enough close parentheses\n");
-		texit(0);
+		syntaxError("Syntax error: not enough close parentheses.");
 	}
 	return reverse(tree);
 }
@@ -148,8 +152,7 @@ void printTree(Value *tree){
 			printTreeConsType(tree);
 			break;
 		default:
-			printf("Syntax error: unexpected value type in parse tree.\n");
-			texit(0);
+			syntaxError("Syntax error: unexpected value type in parse tree.");
 			break;
 	}
 }
