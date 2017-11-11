@@ -286,7 +286,7 @@ Value *evalDefine(Value *args, Frame *frame, bool inBody){
 * Primitive function that sums any number of numbers
 */
 Value *primitiveAdd(Value *args) {
-    float sum = 0;
+    double sum = 0;
     Value *numberValue = makeNull();
     numberValue->type = INT_TYPE;
     Value *current = args;
