@@ -171,34 +171,83 @@ Value *evalIf(Value *args, Frame *frame){
 }
 
 /*
-* Evaluates the special form LET
+* Validates syntax of LET, LETREC, LET*
 */
-Value *evalLet(Value *args, Frame *frame){
-    //create new frame g with frame as parent
+void validateLetTypeSyntax(Value *bindings, Value *body){
+    validateBindings(bindings);
+    if(body->type == NULL_TYPE){
+        evaluationError("LET/LETREC/LET* requires at least two arguments.");
+    }
+}
+
+/*
+* Helper method to evaluate LET and LETREC
+*/
+Value *evalLetHelper(Value *args, Frame *frame, bool let){
+    Value *bindings = car(args);
+    Value *body = cdr(args);
+    validateLetTypeSyntax(bindings, body);
     Frame *g = makeFrame(frame);
 
-    //get list of bindings and body from args
-    Value *bindings = car(args);
-    validateBindings(bindings);
-    Value *body = cdr(args);
-    if(body->type == NULL_TYPE){
-        evaluationError("LET requires at least two arguments.");
+    //Set evalFrame depending on let, letrec, or let*
+    Frame *evalFrame;
+    if(let){
+        evalFrame = frame;
+    } else {
+        evalFrame = g;
     }
-
     //evaluate e_i...e_k in frame
+    Value *newBindings = makeNull();
     Value *current = bindings;
     while(current->type != NULL_TYPE){
         Value *binding = car(current);
         Value *variable = car(binding);
-        checkDuplicateBinding(variable, g->bindings, false);
-        Value *result = eval(car(cdr(binding)), frame);
-        //create new binding in g
+        checkDuplicateBinding(variable, newBindings, false);
+        Value *result = eval(car(cdr(binding)), evalFrame);
+        Value *newBinding = cons(variable, result);
+        newBindings = cons(newBinding, newBindings);
+        current = cdr(current);
+    }
+    g->bindings = newBindings;
+    return evalBody(body, g);
+}
+
+/*
+* Evaluates the special form LET
+*/
+Value *evalLet(Value *args, Frame *frame){
+    return evalLetHelper(args, frame, true);
+}
+
+/*
+* Evaluates the special form LETREC
+*/
+Value *evalLetrec(Value *args, Frame *frame){
+    return evalLetHelper(args, frame, false);
+}
+
+/*
+* Evaluates the special form LET*
+*/
+Value *evalLetstar(Value *args, Frame *frame){
+    Value *bindings = car(args);
+    Value *body = cdr(args);
+    validateLetTypeSyntax(bindings, body);
+
+    Frame *currentFrame = frame;
+    Value *current = bindings;
+    while(current->type != NULL_TYPE){
+        Frame *g = makeFrame(currentFrame);
+        Value *binding = car(current);
+        Value *variable = car(binding);
+        Value *result = eval(car(cdr(binding)), currentFrame);
         Value *newBinding = cons(variable, result);
         g->bindings = cons(newBinding, g->bindings);
         current = cdr(current);
+        currentFrame = g;
     }
 
-    return evalBody(body, g);
+    return evalBody(body, currentFrame);
 }
 
 /*
@@ -446,8 +495,11 @@ Value *evalConsType(Value *tree, Frame *frame){
         result = evalDefine(args, frame, false);
     } else if(!strcmp(first->s, "lambda")){
         result = evalLambda(args, frame);
-    }
-    else {
+    } else if(!strcmp(first->s, "letrec")){
+        result = evalLetrec(args, frame);
+    } else if(!strcmp(first->s, "let*")){
+        result = evalLetstar(args, frame);
+    } else {
         result = evalCombination(first, args, frame);
     }
     return result;

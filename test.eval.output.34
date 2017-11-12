@@ -1,0 +1,5 @@
+(3 . 1)
+(1 . 2)
+(#<procedure> . 2)
+(10 . 2)
+Evaluation error: Binding for symbol not found.
