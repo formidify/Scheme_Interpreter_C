@@ -364,6 +364,111 @@ Value *primitiveAdd(Value *args) {
 }
 
 /*
+* Primitive function that multiplies any number of numbers
+*/
+Value *primitiveMult(Value *args) {
+    double product = 1;
+    Value *numberValue = makeNull();
+    numberValue->type = INT_TYPE;
+    Value *current = args;
+    while (current->type != NULL_TYPE) {
+        Value *val = car(current);
+        if (val->type != INT_TYPE && val->type != DOUBLE_TYPE){
+            evaluationError("* only takes numbers as arguments.");
+        }
+        if (val->type == DOUBLE_TYPE){
+            numberValue->type = DOUBLE_TYPE;
+            product = product * val->d;
+        }
+        else{
+            product = product * val->i;
+        }
+        current = cdr(current);
+    }
+    if (numberValue->type == DOUBLE_TYPE){
+        numberValue->d = product;
+    }
+    else{
+        numberValue->i = (int) product;
+    }
+    return numberValue;
+}
+
+/*
+* Primitive function that subtracts at least one number
+*/
+Value *primitiveSubtract(Value *args) {
+    if(args->type == NULL_TYPE){
+        evaluationError("- requires at least one argument.");
+    }
+    bool firstVal = true;
+    Value *numberValue = makeNull();
+    numberValue->type = INT_TYPE;
+    Value *current = args;
+    double diff = 0;
+    while (current->type != NULL_TYPE) {
+        Value *val = car(current);
+        if (val->type != INT_TYPE && val->type != DOUBLE_TYPE){
+            evaluationError("- only takes numbers as arguments.");
+        }
+        if(firstVal && cdr(current)->type != NULL_TYPE){
+            diff = val->type == DOUBLE_TYPE ? val->d : val->i;
+            firstVal = false;
+        } else if (val->type == DOUBLE_TYPE){
+            numberValue->type = DOUBLE_TYPE;
+            diff = diff - val->d;
+        } else{
+            diff = diff - val->i;
+        }
+        current = cdr(current);
+    }
+    if (numberValue->type == DOUBLE_TYPE){
+        numberValue->d = diff;
+    }
+    else{
+        numberValue->i = (int) diff;
+    }
+    return numberValue;
+}
+
+/*
+* Primitive function that divides at least one number
+*/
+Value *primitiveDivide(Value *args) {
+    if(args->type == NULL_TYPE){
+        evaluationError("/ requires at least one argument.");
+    }
+    bool firstVal = true;
+    Value *numberValue = makeNull();
+    numberValue->type = INT_TYPE;
+    Value *current = args;
+    double quot = 1;
+    while (current->type != NULL_TYPE) {
+        Value *val = car(current);
+        if (val->type != INT_TYPE && val->type != DOUBLE_TYPE){
+            evaluationError("/ only takes numbers as arguments.");
+        }
+        if(firstVal && cdr(current)->type != NULL_TYPE){
+            quot = val->type == DOUBLE_TYPE ? val->d : val->i;
+            firstVal = false;
+        } else if (val->type == DOUBLE_TYPE){
+            numberValue->type = DOUBLE_TYPE;
+            quot = quot / val->d;
+        } else{
+            quot = quot / val->i;
+        }
+        current = cdr(current);
+    }
+    if(numberValue->type == INT_TYPE && quot - (int) quot == 0){
+        numberValue->i = quot;
+    } else{
+        numberValue->type = DOUBLE_TYPE;
+        numberValue->d = quot;
+    }
+    return numberValue;
+}
+
+/*
 * Primitive function that returns true if the list is null,
 * returns false otherwise.
 */
@@ -626,6 +731,9 @@ void interpret(Value *tree){
     assert(tree != NULL);
     topFrame = makeFrame(NULL);
     bind("+", primitiveAdd, topFrame);
+    bind("-", primitiveSubtract, topFrame);
+    bind("*", primitiveMult, topFrame);
+    bind("/", primitiveDivide, topFrame);
     bind("null?", primitiveIsNull, topFrame);
     bind("car", primitiveCar, topFrame);
     bind("cdr", primitiveCdr, topFrame);
