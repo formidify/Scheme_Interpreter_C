@@ -513,6 +513,10 @@ Value *primitiveDivide(Value *args) {
     return numberValue;
 }
 
+/*
+* Primitive function that returns true if each value on the left is
+* less than or equal to the value on its right
+*/
 Value *primitiveLessOrEqual(Value *args){
     if(args->type != CONS_TYPE || cdr(args)->type == NULL_TYPE){
         evaluationError("<= requires at least two arguments.");
