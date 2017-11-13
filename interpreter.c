@@ -451,11 +451,15 @@ Value *primitiveDivide(Value *args) {
         if(firstVal && cdr(current)->type != NULL_TYPE){
             quot = val->type == DOUBLE_TYPE ? val->d : val->i;
             firstVal = false;
-        } else if (val->type == DOUBLE_TYPE){
-            numberValue->type = DOUBLE_TYPE;
-            quot = quot / val->d;
-        } else{
-            quot = quot / val->i;
+        } else {
+            double divider = val->type == DOUBLE_TYPE ? val->d : val->i;
+            if(divider == 0){
+                evaluationError("Cannot divide by 0.");
+            }
+            if(val->type == DOUBLE_TYPE){
+                numberValue->type = DOUBLE_TYPE;
+            }
+            quot = quot / divider;
         }
         current = cdr(current);
     }
@@ -466,6 +470,36 @@ Value *primitiveDivide(Value *args) {
         numberValue->d = quot;
     }
     return numberValue;
+}
+
+Value *primitiveLessOrEqual(Value *args){
+    if(args->type != CONS_TYPE || cdr(args)->type == NULL_TYPE){
+        evaluationError("<= requires at least two arguments.");
+    }
+
+    Value *lessThanOrEq = makeNull();
+    lessThanOrEq->type = BOOL_TYPE;
+    lessThanOrEq->b = true;
+    bool firstVal = true;
+    Value *current = args;
+    double left = 0;
+    while(current->type != NULL_TYPE){
+        Value *val = car(current);
+        if (val->type != INT_TYPE && val->type != DOUBLE_TYPE){
+            evaluationError("<= only takes numbers as arguments.");
+        }
+        double right = val->type == INT_TYPE ? val->i : val->d;
+        if(!firstVal){
+            if(left > right){
+                lessThanOrEq->b = false;
+            }
+        } else{
+            firstVal = false;
+        }
+        left = right;
+        current = cdr(current);
+    }
+    return lessThanOrEq;
 }
 
 /*
@@ -734,6 +768,7 @@ void interpret(Value *tree){
     bind("-", primitiveSubtract, topFrame);
     bind("*", primitiveMult, topFrame);
     bind("/", primitiveDivide, topFrame);
+    bind("<=", primitiveLessOrEqual, topFrame);
     bind("null?", primitiveIsNull, topFrame);
     bind("car", primitiveCar, topFrame);
     bind("cdr", primitiveCdr, topFrame);
