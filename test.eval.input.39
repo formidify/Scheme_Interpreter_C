@@ -1,0 +1,1 @@
+(and) (and 1 2 3) (and (if #f 3)) (and 1 (if #t #f) 2) (and #t) (define x #f) (and x y)

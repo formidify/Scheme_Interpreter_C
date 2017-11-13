@@ -251,6 +251,47 @@ Value *evalLetstar(Value *args, Frame *frame){
 }
 
 /*
+* Evaluates the special form 'and'
+*/
+Value *evalAnd(Value *args, Frame *frame){
+    if (args->type == NULL_TYPE){
+        Value *trueValue = makeNull();
+        trueValue->type = BOOL_TYPE;
+        trueValue->b = true;
+        return trueValue;
+    }
+    while (cdr(args)->type != NULL_TYPE){
+        Value *result = eval(car(args), frame);
+        if (result->type == BOOL_TYPE && !(result->b)){
+            return result;
+        }
+        args = cdr(args);
+    }
+    Value *result = eval(car(args), frame);
+    return result;
+}
+
+/*
+* Evaluates the special form 'or'
+*/
+Value *evalOr(Value *args, Frame *frame){
+    if (args->type == NULL_TYPE){
+        Value *trueValue = makeNull();
+        trueValue->type = BOOL_TYPE;
+        trueValue->b = false;
+        return trueValue;
+    }
+    while (cdr(args)->type != NULL_TYPE){
+        Value *result = eval(car(args), frame);
+        if (result->type != BOOL_TYPE || result->b){
+            return result;
+        }
+        args = cdr(args);
+    }
+    Value *result = eval(car(args), frame);
+    return result;
+}
+/*
 * Validates formals are identifiers
 */
 void validateFormals(Value *args){
@@ -604,6 +645,10 @@ Value *evalConsType(Value *tree, Frame *frame){
         result = evalLetrec(args, frame);
     } else if(!strcmp(first->s, "let*")){
         result = evalLetstar(args, frame);
+    } else if(!strcmp(first->s, "and")){
+        result = evalAnd(args, frame);
+    } else if(!strcmp(first->s, "or")){
+        result = evalOr(args, frame);
     } else {
         result = evalCombination(first, args, frame);
     }
