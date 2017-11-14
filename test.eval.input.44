@@ -1,0 +1,7 @@
+(cond (#t 3) (#f))
+(cond) 
+(cond (else 1 2 3 4 5)) 
+(define lambda 6) (define x (cond)) (cond (lambda x 7)) 
+(cond (#f) (#f)) 
+(cond ("can be seen") ("can't be seen"))
+(cond (else 5) 3)
