@@ -567,6 +567,54 @@ Value *primitiveIsNull(Value *args) {
 }
 
 /*
+* Primitive function that returns true if two values are equal,
+* returns false otherwise.
+*/
+Value *primitiveIsEqual(Value *args){
+    if(args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE
+        || cdr(cdr(args))->type != NULL_TYPE){
+        evaluationError("Incorrect number of arguments for eq?.");
+    }
+    Value *isEqual = makeNull();
+    isEqual->type = BOOL_TYPE;
+    Value *val1 = car(args);
+    Value *val2 = car(cdr(args));
+    if(val1->type != val2->type){
+        isEqual->b = false;
+        return isEqual;
+    }
+    switch(val1->type){
+        case BOOL_TYPE:
+            isEqual->b = val1->b == val2->b;
+            break;
+        case INT_TYPE:
+            isEqual->b = val1->i == val2->i;
+            break;
+        case DOUBLE_TYPE:
+            isEqual->b = val1->d == val2->d;
+            break;
+        case STR_TYPE:
+            isEqual->b = !strcmp(val1->s, val2->s);
+            break;
+        case CONS_TYPE:
+            isEqual->b = &val1->c == &val2->c;
+            break;
+        case CLOSURE_TYPE:
+            isEqual->b = &val1->cl == &val2->cl;
+            break;
+        case NULL_TYPE:
+            isEqual->b = true;
+            break;
+        case SYMBOL_TYPE:
+            isEqual->b = !strcmp(val1->s, val2->s);
+            break;
+        default:
+            evaluationError("Unrecognized value type.");
+    }
+    return isEqual;
+}
+
+/*
 * Primitive function that returns the car of a cons type
 */
 Value *primitiveCar(Value *args) {
@@ -819,6 +867,7 @@ void interpret(Value *tree){
     bind("/", primitiveDivide, topFrame);
     bind("<=", primitiveLessOrEqual, topFrame);
     bind("null?", primitiveIsNull, topFrame);
+    bind("eq?", primitiveIsEqual, topFrame);
     bind("car", primitiveCar, topFrame);
     bind("cdr", primitiveCdr, topFrame);
     bind("cons", primitiveCons, topFrame);
