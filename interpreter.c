@@ -615,6 +615,21 @@ Value *primitiveIsEqual(Value *args){
 }
 
 /*
+* Primitive function that returns true value is a pair,
+* returns false otherwise.
+*/
+Value *primitiveIsPair(Value *args){
+    if(args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
+        evaluationError("pair? expects exactly one argument.");
+    }
+
+    Value *isPair = makeNull();
+    isPair->type = BOOL_TYPE;
+    isPair->b = car(args)->type == CONS_TYPE;
+    return isPair;
+}
+
+/*
 * Primitive function that returns the car of a cons type
 */
 Value *primitiveCar(Value *args) {
@@ -868,6 +883,7 @@ void interpret(Value *tree){
     bind("<=", primitiveLessOrEqual, topFrame);
     bind("null?", primitiveIsNull, topFrame);
     bind("eq?", primitiveIsEqual, topFrame);
+    bind("pair?", primitiveIsPair, topFrame);
     bind("car", primitiveCar, topFrame);
     bind("cdr", primitiveCdr, topFrame);
     bind("cons", primitiveCons, topFrame);
