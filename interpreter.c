@@ -630,6 +630,29 @@ Value *primitiveIsPair(Value *args){
 }
 
 /*
+*
+*/
+Value *primitiveLoad(Value *args){
+    if(args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
+        evaluationError("load expects exactly one argument.");
+    }
+
+    if(car(args)->type != STR_TYPE){
+        evaluationError("load expects a filepath");
+    }
+
+    FILE *fp;
+    fp = fopen(car(args)->s, "r");
+    stdin = fp;
+    Value *list = tokenize();
+    Value *tree = parse(list);
+    interpret(tree);
+    Value *voidType = makeNull();
+    voidType->type = VOID_TYPE;
+    return voidType;
+}
+
+/*
 * Primitive function that returns the car of a cons type
 */
 Value *primitiveCar(Value *args) {
@@ -887,6 +910,7 @@ void interpret(Value *tree){
     bind("car", primitiveCar, topFrame);
     bind("cdr", primitiveCdr, topFrame);
     bind("cons", primitiveCons, topFrame);
+    bind("load", primitiveLoad, topFrame);
     Value *current = tree;
     while(current->type != NULL_TYPE){
         level = 0;
