@@ -362,11 +362,14 @@ Value *evalCond(Value *args, Frame *frame){
 */
 void validateFormals(Value *args){
     Value *formal = args;
-    while(formal->type != NULL_TYPE){
+    while(formal->type == CONS_TYPE){
         if(car(formal)->type != SYMBOL_TYPE){
             evaluationError("Formal must be an identifier.");
         }
         formal = cdr(formal);
+    }
+    if(formal->type != NULL_TYPE){
+        evaluationError("Incorrectly formatted formals.");
     }
 }
 
@@ -377,7 +380,9 @@ Value *evalLambda(Value *args, Frame *frame){
     if (args->type != CONS_TYPE || cdr(args)->type == NULL_TYPE){
         evaluationError("Incorrect number of arguments for LAMBDA.");
     }
-    validateFormals(car(args));
+    if(car(args)->type != SYMBOL_TYPE){
+        validateFormals(car(args));
+    }
     Value *closureType = makeNull();
     closureType->type = CLOSURE_TYPE;
     closureType->cl.fr = frame;
@@ -402,6 +407,26 @@ void validateDefine(bool inBody, Value *args){
 }
 
 /*
+* Helper method for evalDefine(), handles evaluating syntactic sugar
+* to bind procedures
+*/
+Value *evalDefineProcHelper(Value *syntaxSugar, Value *body, Frame *frame){
+    if(syntaxSugar->type == SYMBOL_TYPE){
+        return evalLambda(cons(syntaxSugar, body), frame);
+    }
+    Value *formals = makeNull();
+    Value *current = syntaxSugar;
+    while(current->type == CONS_TYPE){
+        formals = cons(car(current), formals);
+        current = cdr(current);
+    }
+    if(current->type != NULL_TYPE){
+        evaluationError("Incorrectly formatted formals");
+    }
+    return evalLambda(cons(reverse(formals), body), frame);
+}
+
+/*
 * Evaluates the special form DEFINE
 */
 Value *evalDefine(Value *args, Frame *frame, bool inBody){
@@ -411,15 +436,8 @@ Value *evalDefine(Value *args, Frame *frame, bool inBody){
 
     Value *var = car(args);
     if(var->type == CONS_TYPE){
-        Value *sugar = var;
-        var = car(sugar);
-        Value *formals = makeNull();
-        Value *current = cdr(sugar);
-        while(current->type != NULL_TYPE){
-            formals = cons(car(current), formals);
-            current = cdr(current);
-        }
-        result = evalLambda(cons(reverse(formals), cdr(args)), frame);
+        result = evalDefineProcHelper(cdr(var), cdr(args), frame);
+        var = car(var);
     }
     if(var->type != SYMBOL_TYPE){
         evaluationError("Cannot bind to non-identifier.");
@@ -771,6 +789,13 @@ Value *apply(Value *function, Value *args){
     Frame *g = makeFrame(function->cl.fr);
     Value *formals = function->cl.fp;
     Value *actuals = args;
+
+    if(formals->type == SYMBOL_TYPE){
+        checkDuplicateBinding(formals, g->bindings, false);
+        Value *newBinding = cons(formals, actuals);
+        g->bindings = cons(newBinding, g->bindings);
+        return evalBody(function->cl.bod, g);
+    }
 
     while (formals->type != NULL_TYPE && actuals->type != NULL_TYPE) {
         Value *formal = car(formals);

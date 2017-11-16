@@ -1,0 +1,6 @@
+#<procedure>
+#<procedure>
+(1 2 3 4)
+("hi" ("this" . "should be a list"))
+#t
+#t
