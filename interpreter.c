@@ -341,7 +341,7 @@ Value *evalCond(Value *args, Frame *frame){
                 evaluationError("Else statement must have at least one argument.");
             }
             return returnLastEval(consq, frame);
-        } else{ 
+        } else{
             Value *result = eval(cond, frame);
             if (!(result->type == BOOL_TYPE && !result->b)){
                 if (consq->type == NULL_TYPE){
@@ -696,7 +696,8 @@ Value *primitiveIsPair(Value *args){
 }
 
 /*
-*
+* Reads in a file and excutes the Scheme code within as if
+* it were typed directly as part of the input.
 */
 Value *primitiveLoad(Value *args){
     if(args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
@@ -704,11 +705,14 @@ Value *primitiveLoad(Value *args){
     }
 
     if(car(args)->type != STR_TYPE){
-        evaluationError("load expects a filepath");
+        evaluationError("load expects a filepath.");
     }
 
     FILE *fp;
     fp = fopen(car(args)->s, "r");
+    if(!fp){
+        evaluationError("File does not exist.");
+    }
     stdin = fp;
     Value *list = tokenize();
     Value *tree = parse(list);

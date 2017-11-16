@@ -1,0 +1,24 @@
+(+ (* 2 3) 4)
+4
+"\n"
+(1 2 3)
+(+ "hi" () (2.345000 * -))
+()
+hola
+(a)
+"hello90()239.sd&"
+(quote (1 2 3))
+(car (1 2 3))
+1
+#f
+2
+1
+#t
+2
+#t
+1
+2
+100
+x
+"additional stuff after load"
+("does" "load" "work" . "correctly?")

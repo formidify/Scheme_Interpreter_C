@@ -1,0 +1,3 @@
+(load "test.eval.input.01")
+"additional stuff after load"
+(cons "does" (cons "load" (cons "work" "correctly?")))
