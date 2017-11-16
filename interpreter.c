@@ -291,6 +291,72 @@ Value *evalOr(Value *args, Frame *frame){
     Value *result = eval(car(args), frame);
     return result;
 }
+
+/*
+* Checks if all cond arguments are in a parenthesis
+*/
+void isCondValid(Value *args){
+    Value *iterator = args;
+    while (iterator->type != NULL_TYPE){
+        if (car(iterator)->type != CONS_TYPE){
+            evaluationError("Invalid syntax for cond arguments.");
+        }
+        iterator = cdr(iterator);
+    }
+}
+
+/*
+* Evaluates cases with multiple expressions
+*/
+Value *returnLastEval(Value *args, Frame *frame){
+    Value *result;
+    while (args->type != NULL_TYPE){
+        result = eval(car(args), frame);
+        args = cdr(args);
+    }
+    return result;
+}
+
+/*
+* Evaluates the special form "cond"
+* Also supports clauses with zero/multiple expressions
+*/
+Value *evalCond(Value *args, Frame *frame){
+    //check if all the arguments are pairs
+    isCondValid(args);
+    while (args->type != NULL_TYPE){
+        //check if the exprs are in parens and it has sth inside
+        if (car(car(args))->type == NULL_TYPE){
+            evaluationError("Cond expression requires at least one argument.");
+        }
+        Value *cond = car(car(args));
+        Value *consq = cdr(car(args));
+        if (cond->type == SYMBOL_TYPE && !strcmp(cond->s, "else")){
+            //check if nothing comes after else
+            if (cdr(args)->type != NULL_TYPE){
+                evaluationError("Else statement must be the last.");
+            }
+            //else must have at least one argument
+            if (consq->type == NULL_TYPE){
+                evaluationError("Else statement must have at least one argument.");
+            }
+            return returnLastEval(consq, frame);
+        } else{ 
+            Value *result = eval(cond, frame);
+            if (!(result->type == BOOL_TYPE && !result->b)){
+                if (consq->type == NULL_TYPE){
+                    return result;
+                }
+                return returnLastEval(consq, frame);
+            }
+        }
+        args = cdr(args);
+    }
+    Value *voidType = makeNull();
+    voidType->type = VOID_TYPE;
+    return voidType;
+}
+
 /*
 * Validates formals are identifiers
 */
@@ -773,6 +839,8 @@ Value *evalConsType(Value *tree, Frame *frame){
         result = evalAnd(args, frame);
     } else if(!strcmp(first->s, "or")){
         result = evalOr(args, frame);
+    } else if (!strcmp(first->s, "cond")){
+        result = evalCond(args, frame);
     } else {
         result = evalCombination(first, args, frame);
     }
