@@ -293,6 +293,18 @@ Value *evalOr(Value *args, Frame *frame){
 }
 
 /*
+* Evaluates cases with multiple expressions
+*/
+Value *evalBegin(Value *args, Frame *frame){
+    Value *result;
+    if (car(args)->type == NULL_TYPE){
+        result = makeVoidValue();
+        return result;
+    }
+    return evalBody(args, frame);
+}
+
+/*
 * Checks if all cond arguments are in a parenthesis
 */
 void isCondValid(Value *args){
@@ -306,7 +318,8 @@ void isCondValid(Value *args){
 }
 
 /*
-* Evaluates cases with multiple expressions
+* Evaluates cases with multiple expressions without allowing 
+* inner definition
 */
 Value *returnLastEval(Value *args, Frame *frame){
     Value *result;
@@ -870,6 +883,8 @@ Value *evalConsType(Value *tree, Frame *frame){
         result = evalOr(args, frame);
     } else if (!strcmp(first->s, "cond")){
         result = evalCond(args, frame);
+    } else if (!strcmp(first->s, "begin")){
+        result = evalBegin(args, frame);
     } else {
         result = evalCombination(first, args, frame);
     }
