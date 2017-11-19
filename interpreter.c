@@ -48,10 +48,13 @@ Frame *makeFrame(Frame *parent){
 * Looks up symbol in the given frame, and if not found,
 * continues searching the parents until the binding is found.
 */
-Value *lookUpSymbol(Value *symbol, Frame *frame, bool giveError){
+Value *lookUpSymbol(Value *symbol, Frame *frame, bool giveError, Value *setBangValue){
     if(frame == NULL){
         if(giveError){
-            evaluationError("Binding for symbol not found.");
+            if (setBangValue == NULL){
+                evaluationError("Binding for symbol not found.");
+            }
+            evaluationError("Cannot set undefined variable to value.");
         } else{
             return NULL;
         }
@@ -60,11 +63,16 @@ Value *lookUpSymbol(Value *symbol, Frame *frame, bool giveError){
     while(current->type != NULL_TYPE){
         Value *binding = car(current);
         if(!strcmp(symbol->s, car(binding)->s)){
-            return cdr(binding);
+            if (setBangValue == NULL){
+                return cdr(binding);
+            }
+            binding->c.cdr = setBangValue;
+            Value *voidValue = makeVoidValue();
+            return voidValue;
         }
         current = cdr(current);
     }
-    return lookUpSymbol(symbol, frame->parent, giveError);
+    return lookUpSymbol(symbol, frame->parent, giveError, setBangValue);
 }
 
 /*
@@ -147,7 +155,7 @@ Value *evalQuote(Value *args, Frame *frame){
     if(args->type == NULL_TYPE || cdr(args)->type != NULL_TYPE){
         evaluationError("QUOTE requires exactly one argument.");
     }
-	return car(args);
+    return car(args);
 }
 
 /*
@@ -470,6 +478,23 @@ Value *evalDefine(Value *args, Frame *frame, bool inBody){
 }
 
 /*
+ * Evaluates the special form set! 
+ */
+Value *evalSetBang(Value *args, Frame *frame) {
+    if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE || cdr(cdr(args))->type != NULL_TYPE){
+        evaluationError("set! only allows 2 parts after keyword.");
+    }
+    Value *var = car(args);
+    if (var->type != SYMBOL_TYPE){
+        evaluationError("set! only applies to identifiers.");
+    }
+
+    Value *evaledBody = eval(car(cdr(args)), frame);
+    Value *result = lookUpSymbol(var, frame, true, evaledBody);
+    return result;
+}
+
+/*
 * Primitive function that sums any number of numbers
 */
 Value *primitiveAdd(Value *args) {
@@ -649,18 +674,18 @@ Value *primitiveLessOrEqual(Value *args){
 * returns false otherwise.
 */
 Value *primitiveIsNull(Value *args) {
-	if (args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
-		evaluationError("Incorrect number of arguments for null?.");
-	}
+    if (args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
+        evaluationError("Incorrect number of arguments for null?.");
+    }
 
-	Value *nullAnswer = makeNull();
-	nullAnswer->type = BOOL_TYPE;
-	if (car(args)->type != NULL_TYPE){
-		nullAnswer->b = false;
-	}else{
-		nullAnswer->b = true;
-	}
-	return nullAnswer;
+    Value *nullAnswer = makeNull();
+    nullAnswer->type = BOOL_TYPE;
+    if (car(args)->type != NULL_TYPE){
+        nullAnswer->b = false;
+    }else{
+        nullAnswer->b = true;
+    }
+    return nullAnswer;
 }
 
 /*
@@ -704,6 +729,9 @@ Value *primitiveIsEqual(Value *args){
             break;
         case SYMBOL_TYPE:
             isEqual->b = !strcmp(val1->s, val2->s);
+            break;
+        case PRIMITIVE_TYPE:
+            isEqual->b = &val1->pf == &val2->pf;
             break;
         default:
             evaluationError("Unrecognized value type.");
@@ -757,12 +785,12 @@ Value *primitiveLoad(Value *args){
 * Primitive function that returns the car of a cons type
 */
 Value *primitiveCar(Value *args) {
-	if (args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
-		evaluationError("Incorrect number of arguments for car.");
-	} else if (car(args)->type != CONS_TYPE){
-		evaluationError("Argument is not a cons type.");
-	}
-	return car(car(args));
+    if (args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
+        evaluationError("Incorrect number of arguments for car.");
+    } else if (car(args)->type != CONS_TYPE){
+        evaluationError("Argument is not a cons type.");
+    }
+    return car(car(args));
 }
 
 /*
@@ -770,11 +798,11 @@ Value *primitiveCar(Value *args) {
 */
 Value *primitiveCdr(Value *args) {
     if (args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
-		evaluationError("Incorrect number of arguments for cdr.");
-	} else if (car(args)->type != CONS_TYPE){
-		evaluationError("Argument is not a cons type.");
-	}
-	return cdr(car(args));
+        evaluationError("Incorrect number of arguments for cdr.");
+    } else if (car(args)->type != CONS_TYPE){
+        evaluationError("Argument is not a cons type.");
+    }
+    return cdr(car(args));
 }
 
 /*
@@ -861,7 +889,7 @@ Value *evalConsType(Value *tree, Frame *frame){
     }
 
     if(first->type == SYMBOL_TYPE
-        && lookUpSymbol(first, frame, false) != NULL){
+        && lookUpSymbol(first, frame, false, NULL) != NULL){
         result = evalCombination(first, args, frame);
     }else if (!strcmp(first->s, "if")) {
         result = evalIf(args, frame);
@@ -885,6 +913,8 @@ Value *evalConsType(Value *tree, Frame *frame){
         result = evalCond(args, frame);
     } else if (!strcmp(first->s, "begin")){
         result = evalBegin(args, frame);
+    } else if (!strcmp(first->s, "set!")){
+        result = evalSetBang(args, frame);
     } else {
         result = evalCombination(first, args, frame);
     }
@@ -908,7 +938,7 @@ Value *eval(Value *tree, Frame *frame){
             return tree;
             break;
         case SYMBOL_TYPE:
-            return lookUpSymbol(tree, frame, true);
+            return lookUpSymbol(tree, frame, true, NULL);
             break;
         case CONS_TYPE: {
             result = evalConsType(tree, frame);
@@ -969,14 +999,14 @@ void printResult(Value *result){
         case STR_TYPE:
             printStr(result->s);
             break;
-		case CONS_TYPE:
+        case CONS_TYPE:
             printf("(");
-			printEvalConsType(result);
+            printEvalConsType(result);
             printf(")");
-			break;
+            break;
         case SYMBOL_TYPE:
-    		printf("%s", result->s);
-    		break;
+            printf("%s", result->s);
+            break;
         case CLOSURE_TYPE:
             printf("#<procedure>");
             break;

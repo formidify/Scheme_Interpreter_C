@@ -1,0 +1,21 @@
+;; test set!
+(define y (lambda ()
+            (define x 2) (define y 23)
+            (set! x 1) (set! x 3) x (set! x 4)
+            (let ((z (set! x 7)) (x x))
+              (set! y (lambda (z) (+ x z)))
+              (if (set! x 17) (if z (y 23))))))
+(y)
+
+(define x 55057)
+((lambda () (define x (set! x 23)) x))
+x
+
+;; test eq?
+(eq? 23 23.0)
+(eq? car car)
+(eq? car cdr)
+
+(cond ((set! y 24) 
+       (eq? ((lambda (z) (set! y 12) (- y z)) 6)
+            (begin (define x 1) (set! x 2) (/ y x)))))
