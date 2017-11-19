@@ -13,6 +13,9 @@
 #include "parser.h"
 #include <string.h>
 
+static bool quoteSugar = false;
+static int quoteDepth = 0;
+
 /*
 * Prints a given error message and safely exits the program
 */
@@ -22,12 +25,40 @@ void syntaxError(char* errorMsg){
 }
 
 /*
+* Handles parsing ' as syntactic sugar for quote
+*/
+Value *parseQuote(Value *tree, Value *token){
+	if(quoteSugar){
+		if(token->type == CLOSE_TYPE){
+			quoteDepth--;
+		}
+		if(quoteDepth == 0){
+			Value *quoteSymbol = makeNull();
+			quoteSymbol->type = SYMBOL_TYPE;
+			quoteSymbol->s = "quote";
+			Value *quoteExpr = makeNull();
+			quoteExpr = cons(car(tree), quoteExpr);
+			quoteExpr = cons(quoteSymbol, quoteExpr);
+			tree = cdr(tree);
+			tree = cons(quoteExpr, tree);
+			quoteSugar = false;
+			quoteDepth = 0;
+		}
+	}
+	return tree;
+}
+
+/*
 * Takes in a pre-existing tree, a token to add to it, and a pointer
 * to an integer depth, which is updated to represent the number of
 * unclosed open parentheses in the parse tree. The parse tree is
 * complete if (and only if) depth == 0 when the parse function returns.
 */
 Value *addToParseTree(Value *tree, int *depth, Value *token){
+	if(token->type == QUOTE_TYPE){
+		quoteSugar = true;
+		return tree;
+	}
 	if(token->type == CLOSE_TYPE){
 		Value *newList = makeNull();
 		Value *current = tree;
@@ -36,7 +67,7 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 				tree = cdr(current);
 				tree = cons(newList, tree);
 				(*depth)--;
-				return tree;
+				return parseQuote(tree, token);
 			} else{
 				if(cdr(current)->type != NULL_TYPE
 					&& car(cdr(current))->type == DOT_TYPE){
@@ -59,10 +90,13 @@ Value *addToParseTree(Value *tree, int *depth, Value *token){
 	} else{
 		if(token->type == OPEN_TYPE){
 			(*depth)++;
+			if(quoteSugar){
+				quoteDepth++;
+			}
 		}
 		tree = cons(token, tree);
 	}
-	return tree;
+	return parseQuote(tree, token);
 }
 
 /*

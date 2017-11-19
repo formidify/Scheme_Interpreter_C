@@ -273,6 +273,10 @@ Value *tokenize(){
             Value *closeType = makeNull();
             closeType->type = CLOSE_TYPE;
             list = cons(closeType, list);
+        } else if (charRead == '\''){
+            Value *quoteType = makeNull();
+            quoteType->type = QUOTE_TYPE;
+            list = cons(quoteType, list);
         } else if (charRead == '#'){
             Value *boolType = tokenizeBoolean();
             list = cons(boolType, list);
@@ -340,11 +344,17 @@ void printStr(char *s){
 void displayTokens(Value *list){
     assert(list != NULL);
     switch(list->type) {
-            case OPEN_TYPE:
+        case OPEN_TYPE:
             printf("%s:open", "(");
             break;
         case CLOSE_TYPE:
             printf("%s:close", ")");
+            break;
+        case DOT_TYPE:
+            printf(".:dot");
+            break;
+        case QUOTE_TYPE:
+            printf("':quote");
             break;
         case BOOL_TYPE:
             if(list->b){
