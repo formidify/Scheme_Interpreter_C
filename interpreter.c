@@ -1048,6 +1048,7 @@ void printResult(Value *result){
         case SYMBOL_TYPE:
             printf("%s", result->s);
             break;
+        case PRIMITIVE_TYPE:
         case CLOSURE_TYPE:
             printf("#<procedure>");
             break;

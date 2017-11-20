@@ -1,0 +1,10 @@
+(cdr (quote (1)))
+;(car (quote ()))
+;(cdr (quote ()))
+
+(null? (quote ()))
+(null? (quote abc))
+(null? (quote (x y z)))
+
+cons
+
