@@ -92,11 +92,23 @@
                             (else 0)))))
                 (helper x)))))
 
+(define round
+    (lambda (x)
+        (if (number? x)
+            (cond ((< (- (ceiling x) x) (- x (floor x)))
+                      (ceiling x))
+                  ((< (- x (floor x)) (- (ceiling x) x))
+                      (floor x))
+                  (else (if (even? (ceiling x))
+                            (ceiling x)
+                            (floor x))))
+            (evalError "Input to round must be number."))))
+
 (define modulo
     (lambda (x y)
-        (if (number? x)
+        (if (and (integer? x) (integer? y))
             (- x (* (floor (/ x y)) y))
-            (evalError "Input to modulo must be number."))))
+            (evalError "Input to modulo must be integer."))))
 
 (define even?
     (lambda (x)
@@ -119,3 +131,23 @@
         (if (and (number? x) (number? y))
             (if (<= x y) x y)
             (evalError "Input to min must be number."))))
+
+(define gcd
+    (lambda (x y)
+        (if (and (integer? x) (integer? y))
+            (letrec ((helper (lambda (x y)
+                        (cond ((zero? x) (abs y))
+                              ((zero? y) (abs x))
+                              ((zero? (modulo x y)) (abs y))
+                              (else (gcd y (modulo x y)))))))
+                (helper (if (>= (abs x) (abs y)) x y)
+                        (if (>= (abs x) (abs y)) y x)))
+            (evalError "Input to gcd must be integer."))))
+
+(define lcm
+    (lambda (x y)
+    (if (and (integer? x) (integer? y))
+        (if (or (zero? x) (zero? y))
+            0
+            (/ (abs (* x y)) (gcd x y)))
+        (evalError "Input to lcm must be integer."))))

@@ -798,7 +798,6 @@ Value *primitiveLoad(Value *args){
     Value *list = tokenize();
     Value *tree = parse(list);
     interpret(tree);
-    printf("Been here.");
     Value *voidType = makeNull();
     voidType->type = VOID_TYPE;
     return voidType;
