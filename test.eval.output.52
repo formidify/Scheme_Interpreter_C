@@ -13,4 +13,4 @@
 (1 2)
 (1 2 5)
 (1 2 5 1 . 2)
-Evaluation error: Cannot append to non-list.
+Evaluation error: Can't append to non-list.

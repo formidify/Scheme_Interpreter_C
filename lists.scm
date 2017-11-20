@@ -14,7 +14,7 @@
                                     (helper (car y) (cdr y))
                                     (if (pair? x)
                                         (cons (car x) (helper2 (cdr x)))
-                                        (evalError "Cannot append to non-list.")
+                                        (evalError "Can't append to non-list.")
                                         )))))
                             (helper2 x))))))
             (helper '() x))))
