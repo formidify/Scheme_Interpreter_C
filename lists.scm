@@ -5,25 +5,21 @@
 (define list
   (lambda x x))
 
-(define append-helper
-  (lambda (x y)
-    (if (null? x)
-        y
-        (cons (car x) (append-helper (cdr x) y)))))
 
 (define append
   (lambda x
-    (if (null? x)
-        (quote ())
-        (if (null? (cdr x))
-            (car x)
-            (if (not (null? (cdr (cdr x))))
-                #f
-                (cond ((and (pair? (car x)) (pair? (car (cdr x))))
-                       (append-helper (car x) (car (cdr x))))
-                      ((and (pair? (car x)) (not (pair? (car (cdr x)))))
-                       (append-helper (car x) (car (cdr x))))
-                      ((null? (car x))
-                       (car (cdr x)))
-                      ((not (pair? (car x)))
-                       #f)))))))
+    (letrec ((helper (lambda (x y) (if (null? x) y (cons (car x) (helper (cdr x) y))))))
+      (cond ((null? x)
+             (quote ()))
+            ((null? (cdr x))
+             (car x))
+            ((not (null? (cdr (cdr x))))
+             (evalError "Too many arguments are given."))
+            ((and (pair? (car x)) (pair? (car (cdr x))))
+             (helper (car x) (car (cdr x))))
+            ((and (pair? (car x)) (not (pair? (car (cdr x)))))
+             (helper (car x) (car (cdr x))))
+            ((null? (car x))
+             (car (cdr x)))
+            ((not (pair? (car x)))
+             (evalError "Cannot append to non-list."))))))
