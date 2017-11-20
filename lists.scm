@@ -1,3 +1,4 @@
+;;A library containing built-in Scheme functions for lists.
 (load "math.scm")
 
 (define list
@@ -5,7 +6,8 @@
 
 (define append
   (lambda x
-    (letrec ((helper (lambda (x y) (if (null? x) y (cons (car x) (helper (cdr x) y))))))
+    (letrec ((helper (lambda (x y)
+                        (if (null? x) y (cons (car x) (helper (cdr x) y))))))
       (cond ((null? x)
              (quote ()))
             ((null? (cdr x))
@@ -56,3 +58,32 @@
            0)
           (else
            (evalError "Argument must be a valid list.")))))
+
+(define list-ref
+  (lambda (x y)
+    (cond ((and (pair? x) (<= 0 y))
+           (if (= y 0)
+               (car x)
+               (list-ref (cdr x) (- y 1))))
+          (else #f))))
+
+(define list-tail
+  (lambda (x y)
+    (cond ((and (pair? x) (<= 0 y))
+           (if (= y 0)
+               x
+               (list-tail (cdr x) (- y 1))))
+          ((and (not (pair? x)) (= y 0))
+           x)
+          (else #f))))
+
+(define member
+  (lambda (x y)
+    (cond ((and (list? y) (not (null? y)))
+           (if (not (equal? x (car y)))
+               (member x (cdr y))
+               y))
+          ((and (list? y) (null? y))
+           #f)
+          ((not (list? y))
+           #f))))
