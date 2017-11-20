@@ -1,0 +1,11 @@
+(load "lists.scm")
+;; Example codes from class
+
+(<= 1 23 2)
+(<= 1 23 55057)
+
+'((quote (1 2 3)) 4 5) 
+'4'5
+(define x 6)
+x'7
++'8
