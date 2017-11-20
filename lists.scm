@@ -1,6 +1,4 @@
-(define not
-    (lambda (x)
-        (if x #f #t)))
+(load "library.scm")
 
 (define list
   (lambda x x))
