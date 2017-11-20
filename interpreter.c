@@ -798,7 +798,6 @@ Value *primitiveLoad(Value *args){
     Value *list = tokenize();
     Value *tree = parse(list);
     interpret(tree);
-    printf("Been here.");
     Value *voidType = makeNull();
     voidType->type = VOID_TYPE;
     return voidType;
@@ -1041,6 +1040,7 @@ void printResult(Value *result){
         case SYMBOL_TYPE:
             printf("%s", result->s);
             break;
+        case PRIMITIVE_TYPE:
         case CLOSURE_TYPE:
             printf("#<procedure>");
             break;
