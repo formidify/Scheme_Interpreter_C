@@ -12,6 +12,7 @@ typedef enum {
     OPEN_TYPE,
     CLOSE_TYPE,
     DOT_TYPE,
+    QUOTE_TYPE,
     BOOL_TYPE,
     SYMBOL_TYPE,
     VOID_TYPE,
