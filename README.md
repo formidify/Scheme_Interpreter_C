@@ -8,6 +8,7 @@ Our project supports methods that include:
 1) Special forms: let, letrec, let*, quote, define, lambda, set!, and, or, cond, begin
 2) Primitive functions: +, -, *, /, null?, car, cdr, cons, <=, pair?, eq?
 3) Library procedures (the following functions can be used by calling (load "XX.scm") in your file):
+
   i) library.scm: not, equal?
   
   ii) math.scm: =, zero?, >=, <, >, positive?, negative?, abs, truncate, ceiling, floor, round, modulo, even?, odd?, max, min, gcd, lcm
