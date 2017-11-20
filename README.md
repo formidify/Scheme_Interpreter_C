@@ -17,7 +17,7 @@ Here is the list of extensions we implemented for this project:
 3) 'expr works as an alternative to (quote expr)
 4) Our tokenizer/parser/intepreter give out informative error messages
 5) Supports the syntactic sugar for binding variables to procedure
-6) Supports internal definitions in the body of lambda/let/letrec/let* expressions (unless define is the last in the body (according to DrRacket))
+6) Supports internal definitions in the body of lambda/let/letrec/let* expressions (unless define is the last in the body with no preceding non-definition expressions (matches behavior of DrRacket))
 7) Supports correct return types for + (ex. it returns an integer if all the input numbers are integers)
 8) Supports dotted pair notation for input
 9) Implements the function "load" such that (load "filename") will read the file and execute the Scheme codes within it
