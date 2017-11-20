@@ -7,15 +7,36 @@
               (if (set! x 17) (if z (y 23))))))
 (y)
 
-(define x 55057)
-((lambda () (define x (set! x 23)) x))
-x
+(cond ((set! y 24) 
+       (eq? ((lambda (z) (set! y 12) (- y z)) 6)
+            (begin (define x 1) (set! x 2) (/ y x)))))
+
+(define a 23)
+(define c (set! a (+ a 1)))
+(set! c (+ a 1))
+a c
+(set! a (set! a 2))
+a 
+
+(define b (letrec ((m (lambda () (set! m 55057) (n)))
+(n (lambda () (set! n 23)))) (m) (+ m n)))
+b
+
+(let ((p 3) (q 4)) (set! p (+ q 1)) (set! q (+ p 1)) (+ p q))
 
 ;; test eq?
 (eq? 23 23.0)
 (eq? car car)
 (eq? car cdr)
 
-(cond ((set! y 24) 
-       (eq? ((lambda (z) (set! y 12) (- y z)) 6)
-            (begin (define x 1) (set! x 2) (/ y x)))))
+;; Knuth's test
+(define a
+  (lambda (k x1 x2 x3 x4 x5)
+    (letrec ((b (lambda ()
+                  (set! k (- k 1))
+                  (a k b x1 x2 x3 x4))))
+      (if (<= k 0)
+          (+ (x4) (x5))
+          (b)))))
+
+(a 10 (lambda () 1) (lambda () -1) (lambda () -1) (lambda () 1) (lambda () 0))
