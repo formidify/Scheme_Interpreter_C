@@ -765,6 +765,17 @@ Value *primitiveIsNumber(Value *args){
     return isNumber;
 }
 
+Value *primitiveIsInteger(Value *args){
+    if(args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
+        evaluationError("integer? expects exactly one argument.");
+    }
+
+    Value *isInt = makeNull();
+    isInt->b = car(args)->type == INT_TYPE;
+    isInt->type = BOOL_TYPE;
+    return isInt;
+}
+
 /*
 * Reads in a file and excutes the Scheme code within as if
 * it were typed directly as part of the input.
@@ -1078,6 +1089,7 @@ void interpret(Value *tree){
     bind("load", primitiveLoad, topFrame);
     bind("evalError", primitiveEvalError, topFrame);
 	bind("number?", primitiveIsNumber, topFrame);
+    bind("integer?", primitiveIsInteger, topFrame);
     Value *current = tree;
     while(current->type != NULL_TYPE){
         level = 0;
