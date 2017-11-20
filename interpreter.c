@@ -809,8 +809,7 @@ Value *primitiveLoad(Value *args){
     if(!fp){
         evaluationError("File does not exist.");
     }
-    stdin = fp;
-    Value *list = tokenize();
+    Value *list = tokenizeFile(fp);
     Value *tree = parse(list);
     interpret(tree);
     Value *voidType = makeNull();

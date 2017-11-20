@@ -1,6 +1,6 @@
 /*
 * By Chae Kim, Tina Liu, James Yang
-* A program that tokenizes Scheme code fed in through stdin, storing tokens
+* A program that tokenizes Scheme code fed in through inputFile, storing tokens
 * in a linked list that can be displayed.
 * Valid tokens are boolean, integer, float, string, symbol, open, close
 */
@@ -12,6 +12,8 @@
 #include "tokenizer.h"
 #include "linkedlist.h"
 #include <string.h>
+
+static FILE *inputFile;
 
 /*
 * Returns true if c is a digit, returns false otherwise.
@@ -78,18 +80,18 @@ Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
 
     if(hasSign){
         add(number, number->size - 1, charRead);
-        charRead = fgetc(stdin);
+        charRead = fgetc(inputFile);
     }
 
     if(hasDot){
-        char lookAhead = fgetc(stdin);
+        char lookAhead = fgetc(inputFile);
         if(!isDigit(lookAhead)){
             printf("Tokenization error: dot must be followed by a digit.\n");
             texit(0);
         }
-        ungetc(lookAhead, stdin);
+        ungetc(lookAhead, inputFile);
         add(number, number->size - 1, charRead);
-        charRead = fgetc(stdin);
+        charRead = fgetc(inputFile);
     }
 
     while(charRead != EOF && charRead != '(' && charRead != ')'
@@ -97,18 +99,18 @@ Value *tokenizeNumber(char charRead, bool hasSign, bool hasDot){
             && charRead != '\"'){
         if(isDigit(charRead)){
             add(number, number->size - 1, charRead);
-            charRead = fgetc(stdin);
+            charRead = fgetc(inputFile);
         } else if(charRead == '.' && !hasDot){
             add(number, number->size - 1, charRead);
             hasDot = true;
-            charRead = fgetc(stdin);
+            charRead = fgetc(inputFile);
         }else {
             printf("Tokenization error, invalid character in number.\n");
             texit(0);
         }
     }
 
-    ungetc(charRead, stdin);
+    ungetc(charRead, inputFile);
     Value *numberType = makeNull();
 
     if(hasDot){
@@ -129,19 +131,19 @@ Value *tokenizeSymbol(char charRead){
     init(symbol, 2);
     add(symbol, 0, charRead);
     add(symbol, 1, '\0');
-    charRead = fgetc(stdin);
+    charRead = fgetc(inputFile);
     while(charRead != EOF && charRead != '(' && charRead != ')'
             && charRead != ' ' && charRead != '\n' && charRead != '\''
             && charRead != '\"'){
         if(isSubsequent(charRead)){
             add(symbol, symbol->size - 1, charRead);
-            charRead = fgetc(stdin);
+            charRead = fgetc(inputFile);
         } else {
             printf("Tokenization error, invalid symbol.\n");
             texit(0);
         }
     }
-    ungetc(charRead, stdin);
+    ungetc(charRead, inputFile);
     Value *symbolType = makeNull();
     symbolType->type = SYMBOL_TYPE;
     symbolType->s = symbol->data;
@@ -153,13 +155,13 @@ Value *tokenizeSymbol(char charRead){
 */
 Value *tokenizeBoolean(){
     Value *boolType;
-    char charRead = fgetc(stdin);
+    char charRead = fgetc(inputFile);
     if (charRead == 't' || charRead == 'f') {
-        char lookAhead = fgetc(stdin);
+        char lookAhead = fgetc(inputFile);
         if (lookAhead == '(' || lookAhead == ')' ||
             lookAhead == ' ' || lookAhead == EOF || lookAhead == '\n'
             || lookAhead == '\'' || lookAhead == '\"') {
-            ungetc(lookAhead, stdin);
+            ungetc(lookAhead, inputFile);
             boolType = makeNull();
             boolType->type = BOOL_TYPE;
             if (charRead == 'f'){
@@ -184,11 +186,11 @@ Value *tokenizeBoolean(){
 */
 Value *tokenizeSign(char charRead){
     Value *token;
-    char lookAhead = fgetc(stdin);
+    char lookAhead = fgetc(inputFile);
     if (lookAhead == EOF || lookAhead == '('
         || lookAhead == ')' || lookAhead == ' ' || lookAhead == '\n'
         || lookAhead == '\'' || lookAhead == '\"') {
-        ungetc(lookAhead, stdin);
+        ungetc(lookAhead, inputFile);
         token = makeNull();
         token->type = SYMBOL_TYPE;
         if(charRead == '-'){
@@ -199,7 +201,7 @@ Value *tokenizeSign(char charRead){
         return token;
     } else if(isDigit(lookAhead) || lookAhead == '.'){
         bool isDot = (lookAhead == '.');
-        ungetc(lookAhead, stdin);
+        ungetc(lookAhead, inputFile);
         token = tokenizeNumber(charRead, true, isDot);
         return token;
     } else {
@@ -216,10 +218,10 @@ Value *tokenizeString(){
     Vector *string = talloc(sizeof(Vector));
     init(string, 1);
     add(string, 0, '\0');
-    char charRead = fgetc(stdin);
+    char charRead = fgetc(inputFile);
     while(charRead != '"'){
         if(charRead == '\\'){
-            charRead = fgetc(stdin);
+            charRead = fgetc(inputFile);
             if(charRead == 'n'){
                 add(string, string->size - 1, '\n');
             } else if(charRead == 't'){
@@ -240,7 +242,7 @@ Value *tokenizeString(){
         } else{
             add(string, string->size - 1, charRead);
         }
-        charRead = fgetc(stdin);
+        charRead = fgetc(inputFile);
     }
     Value *strType = makeNull();
     strType->type = STR_TYPE;
@@ -249,25 +251,22 @@ Value *tokenizeString(){
 }
 
 Value *tokenizeDot(char charRead){
-    char lookAhead = fgetc(stdin);
+    char lookAhead = fgetc(inputFile);
     if(lookAhead == ' '){
-        ungetc(lookAhead, stdin);
+        ungetc(lookAhead, inputFile);
         Value *dotType = makeNull();
         dotType->type = DOT_TYPE;
         return dotType;
     }
-    ungetc(lookAhead, stdin);
+    ungetc(lookAhead, inputFile);
     return tokenizeNumber(charRead, false, true);
 }
 
-/*
-* Reads stdin in its entirety and returns a linked list consisting of
-* all tokens found.
-*/
-Value *tokenize(){
+Value *tokenizeFile(FILE *fp){
+    inputFile = fp;
     char charRead;
     Value *list = makeNull();
-    charRead = fgetc(stdin);
+    charRead = fgetc(inputFile);
     while (charRead != EOF){
         if (charRead == '('){
             Value *openType = makeNull();
@@ -300,17 +299,25 @@ Value *tokenize(){
             Value *strType = tokenizeString();
             list = cons(strType, list);
         } else if(charRead == ';'){
-            charRead = fgetc(stdin);
+            charRead = fgetc(inputFile);
             while(charRead != '\n' && charRead != EOF){
-                charRead = fgetc(stdin);
+                charRead = fgetc(inputFile);
             }
         } else if(charRead != ' ' && charRead != EOF && charRead != '\n'){
             printf("Tokenization error, unknown symbol:%c\n", charRead);
             texit(0);
         }
-        charRead = fgetc(stdin);
+        charRead = fgetc(inputFile);
     }
     return reverse(list);
+}
+
+/*
+* Reads inputFile in its entirety and returns a linked list consisting of
+* all tokens found.
+*/
+Value *tokenize(){
+    return tokenizeFile(stdin);
 }
 
 /*
