@@ -360,7 +360,8 @@ Value *evalCond(Value *args, Frame *frame){
             }
             //else must have at least one argument
             if (consq->type == NULL_TYPE){
-                evaluationError("Else statement must have at least one argument.");
+                evaluationError("Else statement"
+                                        "must have at least one argument.");
             }
             return returnLastEval(consq, frame);
         } else{
@@ -769,7 +770,8 @@ Value *primitiveIsNumber(Value *args){
     }
 
     Value *isNumber = makeNull();
-    isNumber->b = (car(args)->type == INT_TYPE || car(args)->type == DOUBLE_TYPE);
+    isNumber->b = (car(args)->type == INT_TYPE
+                    || car(args)->type == DOUBLE_TYPE);
     isNumber->type = BOOL_TYPE;
     return isNumber;
 }
