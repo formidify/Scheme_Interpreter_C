@@ -1,6 +1,7 @@
 # Intepreter project
 Tina Liu, Chae Kim, James Yang
 
+
 Our interpreter project takes in a file of Scheme codes and evaluate them according to the syntax of R5RS, a dialect of Scheme. 
 
 Our project supports methods that include:
@@ -8,8 +9,11 @@ Our project supports methods that include:
 2) Primitive functions: +, -, *, /, null?, car, cdr, cons, <=, pair?, eq?
 3) Library procedures (the following functions can be used by calling (load "XX.scm") in your file):
   i) library.scm: not, equal?
+  
   ii) math.scm: =, zero?, >=, <, >, positive?, negative?, abs, truncate, ceiling, floor, round, modulo, even?, odd?, max, min, gcd, lcm
+  
   iii) lists.scm: list, append, caar, cadr, list?, length, list-ref, list-tail, member
+
 
 Here is the list of extensions we implemented for this project:
 1) lambda/let/letrec/let* support multiple body expressions, in which case they evaluate all and return the last one
@@ -25,6 +29,7 @@ Here is the list of extensions we implemented for this project:
 11) Cond supports clauses with zero or more arguments
 12) We support additional built-in functions for lists.scm: caar, cadr, list?, length, list-ref, list-tail, member
 13) We support additional built-in functions for math.scm: =, >=, <, >, zero?, positive?, negative, even?, odd?, max, min, abs, gcd, lcm, modulo, floor, ceiling, truncate, round
+
 
 Thanks for viewing our project! 
             
