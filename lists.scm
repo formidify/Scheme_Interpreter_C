@@ -1,8 +1,7 @@
-(load "library.scm")
+(load "math.scm")
 
 (define list
   (lambda x x))
-
 
 (define append
   (lambda x

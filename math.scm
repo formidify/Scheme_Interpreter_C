@@ -12,6 +12,12 @@
         (= 0 x)
         (evalError "Input to zero? must be a number"))))
 
+(define >=
+    (lambda (x y)
+    (if (and (number? x) (number? y))
+        (<= (- y x) 0)
+        (evalError "Input to >= must be number."))))
+
 (define <
     (lambda (x y)
     (if (and (number? x) (number? y))
@@ -42,13 +48,55 @@
             (if (< x 0) (* x -1) x)
             (evalError "Input to abs must be number."))))
 
+(define truncate
+    (lambda (x)
+        (if (number? x)
+            (letrec ((helper (lambda(x)
+                        (if (positive? x)
+                            (if (and (>= x 0) (< x 1))
+                                0
+                                (+ 1 (truncate (- x 1))))
+                            (if (and (<= x 0) (> x -1))
+                                0
+                                (- (truncate (+ x 1)) 1))))))
+                (helper x))
+            (evalError "Input to truncate must be number."))))
+
+(define ceiling
+    (lambda (x)
+        (if (number? x)
+            (letrec ((helper (lambda (x)
+                    (cond ((positive? x)
+                                (if (and (> x 0) (<= x 1))
+                                    1
+                                    (+ 1 (ceiling (- x 1)))))
+                            ((negative? x)
+                                (if (and (< x 0) (> x -1))
+                                    0
+                                    (- (ceiling (+ x 1)) 1)))
+                            (else 0)))))
+                (helper x)))))
+
+(define floor
+    (lambda (x)
+        (if (number? x)
+            (letrec ((helper (lambda (x)
+                    (cond ((positive? x)
+                                (if (and (>= x 0) (< x 1))
+                                    0
+                                    (+ 1 (floor (- x 1)))))
+                            ((negative? x)
+                                (if (and (< x 0) (>= x -1))
+                                    -1
+                                    (- (floor (+ x 1)) 1)))
+                            (else 0)))))
+                (helper x)))))
+
 (define modulo
-  (lambda (x y)
-    (letrec ((helper (lambda (x y)
-                        (cond ((zero? y) (evalError "Cannot divide by zero."))
-                              ((< (abs x) (abs y)) x)
-                              (else (modulo (- x y) y))))))
-        (helper x y))))
+    (lambda (x y)
+        (if (number? x)
+            (- x (* (floor (/ x y)) y))
+            (evalError "Input to modulo must be number."))))
 
 (define even?
     (lambda (x)
