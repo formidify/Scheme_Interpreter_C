@@ -11,7 +11,7 @@
             ((null? (cdr x))
              (car x))
             ((not (null? (cdr (cdr x))))
-             (evalError "Too many arguments are given."))
+             (append (car x) (car (cdr x))))
             ((and (pair? (car x)) (pair? (car (cdr x))))
              (helper (car x) (car (cdr x))))
             ((and (pair? (car x)) (not (pair? (car (cdr x)))))
