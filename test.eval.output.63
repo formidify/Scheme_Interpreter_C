@@ -1,3 +1,12 @@
 ()
-Evaluation error: Argument is not a cons type.
-Evaluation error: Argument is not a cons type.
+#t
+#f
+#f
+(cons and or + - / *)
+#<procedure>
+#f
+#f
+#t
+#f
+#t
+23

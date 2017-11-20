@@ -7,4 +7,6 @@
 (2 3 4)
 ()
 (1 2 3)
-Evaluation error: Cannot append to non-list.
+(1 2 . 1)
+(1 2 1 2 1 2)
+Evaluation error: Can't append to non-list.
