@@ -1,0 +1,2 @@
+(load "math.scm")
+(= 5 3)

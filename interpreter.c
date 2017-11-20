@@ -726,6 +726,22 @@ Value *primitiveIsPair(Value *args){
     return isPair;
 }
 
+Value *primitiveIsNumber(Value *args){
+    if(args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
+        evaluationError("number? expects exactly one argument.");
+    }
+
+    Value *isNumber = makeNull();
+    isNumber->type = BOOL_TYPE;
+	if(car(args)->type == INT_TYPE || car(args)->type == DOUBLE_TYPE){
+		isNumber->b = true;
+	} else {
+    	isNumber->b = false;
+	}
+    return isNumber;
+}
+
+
 /*
 * Reads in a file and excutes the Scheme code within as if
 * it were typed directly as part of the input.
@@ -752,6 +768,8 @@ Value *primitiveLoad(Value *args){
     voidType->type = VOID_TYPE;
     return voidType;
 }
+
+
 
 /*
 * Primitive function that returns the car of a cons type
@@ -1023,6 +1041,7 @@ void interpret(Value *tree){
     bind("cdr", primitiveCdr, topFrame);
     bind("cons", primitiveCons, topFrame);
     bind("load", primitiveLoad, topFrame);
+	bind("number?", primitiveIsNumber, topFrame);
     Value *current = tree;
     while(current->type != NULL_TYPE){
         level = 0;
