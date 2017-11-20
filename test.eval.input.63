@@ -1,7 +1,4 @@
 (load "lists.scm")
-(cdr (quote (1)))
-;(car (quote ()))
-;(cdr (quote ()))
 
 (null? (quote ()))
 (null? (quote abc))
@@ -21,3 +18,5 @@ cons
 (cond ((= 1 1)))
 (cond (23))
 
+(cdr (quote (1)))
+(car (quote ()))
