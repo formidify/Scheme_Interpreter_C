@@ -21,3 +21,39 @@
              (car (cdr x)))
             ((not (pair? (car x)))
              (evalError "Cannot append to non-list."))))))
+
+
+(define caar
+  (lambda (x)
+    (cond ((not (pair? x))
+           (evalError "Expecting pair for arg."))
+          ((pair? (car x))
+           (car (car x)))
+          (else
+           (evalError "Expecting pair for (car arg).")))))
+
+(define cadr
+  (lambda (x)
+    (cond ((not (pair? x))
+           (evalError "Expecting pair for arg."))
+          ((pair? (cdr x))
+           (car (cdr x)))
+          (else
+           (evalError "Expecting pair for (cdr arg).")))))
+
+
+(define list?
+  (lambda (x)
+    (if (pair? x)
+        (list? (cdr x))
+        (null? x))))
+
+
+(define length
+  (lambda (x)
+    (cond ((and (list? x) (not (null? x)))
+           (+ 1 (length (cdr x))))
+          ((and (list? x) (null? x))
+           0)
+          (else
+           (evalError "Argument must be a valid list.")))))
