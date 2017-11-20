@@ -52,7 +52,6 @@ Value *lookUpSymbol(Value *symbol, Frame *frame, bool giveError, Value *setBangV
     if(frame == NULL){
         if(giveError){
             if (setBangValue == NULL){
-                printf("symbol%s", symbol->s);
                 evaluationError("Binding for symbol not found.");
             }
             evaluationError("Cannot set undefined variable to value.");
@@ -306,7 +305,7 @@ Value *evalOr(Value *args, Frame *frame){
 */
 Value *evalBegin(Value *args, Frame *frame){
     Value *result;
-    if (car(args)->type == NULL_TYPE){
+    if (args->type == NULL_TYPE){
         result = makeVoidValue();
         return result;
     }
@@ -788,6 +787,7 @@ Value *primitiveLoad(Value *args){
     Value *list = tokenize();
     Value *tree = parse(list);
     interpret(tree);
+    printf("Been here.");
     Value *voidType = makeNull();
     voidType->type = VOID_TYPE;
     return voidType;
