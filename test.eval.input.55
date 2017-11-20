@@ -1,0 +1,6 @@
+(load "math.scm")
+(zero? 000000.0000000)
+(zero? 0.00001)
+(zero? 00000.1)
+(zero? 55057)
+(zero? (quote (1 2 3)))
