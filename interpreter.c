@@ -52,6 +52,7 @@ Value *lookUpSymbol(Value *symbol, Frame *frame, bool giveError, Value *setBangV
     if(frame == NULL){
         if(giveError){
             if (setBangValue == NULL){
+                printf("symbol%s", symbol->s);
                 evaluationError("Binding for symbol not found.");
             }
             evaluationError("Cannot set undefined variable to value.");
@@ -326,7 +327,7 @@ void isCondValid(Value *args){
 }
 
 /*
-* Evaluates cases with multiple expressions without allowing 
+* Evaluates cases with multiple expressions without allowing
 * inner definition
 */
 Value *returnLastEval(Value *args, Frame *frame){
@@ -478,7 +479,7 @@ Value *evalDefine(Value *args, Frame *frame, bool inBody){
 }
 
 /*
- * Evaluates the special form set! 
+ * Evaluates the special form set!
  */
 Value *evalSetBang(Value *args, Frame *frame) {
     if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE || cdr(cdr(args))->type != NULL_TYPE){
@@ -835,6 +836,15 @@ Value *primitiveCons(Value *args) {
 }
 
 /*
+* Primitive function that takes an error message and calls
+* evaluationError() to terminate the program.
+*/
+Value *primitiveEvalError(Value *errorMsg) {
+    evaluationError(car(errorMsg)->s);
+    return makeVoidValue();
+}
+
+/*
 * Applies the value of the first expression in a combination to the
 * remaining values.
 */
@@ -1071,6 +1081,7 @@ void interpret(Value *tree){
     bind("cdr", primitiveCdr, topFrame);
     bind("cons", primitiveCons, topFrame);
     bind("load", primitiveLoad, topFrame);
+    bind("evalError", primitiveEvalError, topFrame);
 	bind("number?", primitiveIsNumber, topFrame);
     Value *current = tree;
     while(current->type != NULL_TYPE){
