@@ -1,3 +1,4 @@
+;;A library containing general built-in Scheme functions.
 (define not
     (lambda (x)
         (if x #f #t)))

@@ -1,3 +1,4 @@
+;;A library containing built-in Scheme functions involving numbers.
 (load "library.scm")
 
 (define =
