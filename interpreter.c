@@ -761,15 +761,10 @@ Value *primitiveIsNumber(Value *args){
     }
 
     Value *isNumber = makeNull();
+    isNumber->b = (car(args)->type == INT_TYPE || car(args)->type == DOUBLE_TYPE);
     isNumber->type = BOOL_TYPE;
-	if(car(args)->type == INT_TYPE || car(args)->type == DOUBLE_TYPE){
-		isNumber->b = true;
-	} else {
-    	isNumber->b = false;
-	}
     return isNumber;
 }
-
 
 /*
 * Reads in a file and excutes the Scheme code within as if
