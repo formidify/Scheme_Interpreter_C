@@ -48,7 +48,8 @@ Frame *makeFrame(Frame *parent){
 * Looks up symbol in the given frame, and if not found,
 * continues searching the parents until the binding is found.
 */
-Value *lookUpSymbol(Value *symbol, Frame *frame, bool giveError, Value *setBangValue){
+Value *lookUpSymbol(Value *symbol, Frame *frame,
+                    bool giveError, Value *setBangValue){
     if(frame == NULL){
         if(giveError){
             if (setBangValue == NULL){
@@ -481,7 +482,8 @@ Value *evalDefine(Value *args, Frame *frame, bool inBody){
  * Evaluates the special form set!
  */
 Value *evalSetBang(Value *args, Frame *frame) {
-    if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE || cdr(cdr(args))->type != NULL_TYPE){
+    if (args->type != CONS_TYPE || cdr(args)->type != CONS_TYPE
+        || cdr(cdr(args))->type != NULL_TYPE){
         evaluationError("set! only allows 2 parts after keyword.");
     }
     Value *var = car(args);
@@ -740,7 +742,7 @@ Value *primitiveIsEqual(Value *args){
 }
 
 /*
-* Primitive function that returns true value is a pair,
+* Primitive function that returns true if value is a pair,
 * returns false otherwise.
 */
 Value *primitiveIsPair(Value *args){
@@ -754,6 +756,10 @@ Value *primitiveIsPair(Value *args){
     return isPair;
 }
 
+/*
+* Primitive function that returns true if value is a real number,
+* returns false otherwise.
+*/
 Value *primitiveIsNumber(Value *args){
     if(args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
         evaluationError("number? expects exactly one argument.");
@@ -765,6 +771,10 @@ Value *primitiveIsNumber(Value *args){
     return isNumber;
 }
 
+/*
+* Primitive function that returns true if value is an integer,
+* returns false otherwise.
+*/
 Value *primitiveIsInteger(Value *args){
     if(args->type != CONS_TYPE || cdr(args)->type != NULL_TYPE){
         evaluationError("integer? expects exactly one argument.");
@@ -802,8 +812,6 @@ Value *primitiveLoad(Value *args){
     voidType->type = VOID_TYPE;
     return voidType;
 }
-
-
 
 /*
 * Primitive function that returns the car of a cons type
