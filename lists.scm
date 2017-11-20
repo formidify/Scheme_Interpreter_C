@@ -60,7 +60,7 @@
            (if (= y 0)
                (car x)
                (list-ref (cdr x) (- y 1))))
-          (else #f))))
+          (else (evalError "List ends before reaching position.")))))
 
 (define list-tail
   (lambda (x y)
@@ -70,7 +70,7 @@
                (list-tail (cdr x) (- y 1))))
           ((and (not (pair? x)) (= y 0))
            x)
-          (else #f))))
+          (else (evalError "List ends before reaching position.")))))
 
 (define member
   (lambda (x y)
@@ -81,4 +81,4 @@
           ((and (list? y) (null? y))
            #f)
           ((not (list? y))
-           #f))))
+           (evalError "No list was given")))))

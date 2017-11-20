@@ -1,0 +1,17 @@
+(load "lists.scm")
+(member 2 (list 1 2 3 4))
+(member 9 (list 1 2 3 4))
+
+(list-tail (list 1 2 3 4) 2)
+(list-tail (cons 1 2) 1)
+(list-tail 'not-a-pair 0)
+
+(list-ref (list 'a 'b 'c) 0)
+(list-ref (list 'a 'b 'c) 1)
+(list-ref (list 'a 'b 'c) 2)
+(list-ref (cons 1 2) 0)
+
+;(list-tail (cons 1 2) 2)
+;(list-tail 'not-a-pair 1)
+;(list-ref (list 'a 'b 'c) 3)
+;(list-ref (cons 1 2) 1)
