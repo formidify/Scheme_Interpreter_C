@@ -567,7 +567,6 @@ Value *primitiveSubtract(Value *args) {
     }
     bool firstVal = true;
     Value *numberValue = makeNull();
-    numberValue->type = INT_TYPE;
     Value *current = args;
     double diff = 0;
     while (current->type != NULL_TYPE) {
@@ -577,6 +576,7 @@ Value *primitiveSubtract(Value *args) {
         }
         if(firstVal && cdr(current)->type != NULL_TYPE){
             diff = val->type == DOUBLE_TYPE ? val->d : val->i;
+            numberValue->type = val->type;
             firstVal = false;
         } else if (val->type == DOUBLE_TYPE){
             numberValue->type = DOUBLE_TYPE;
@@ -761,15 +761,10 @@ Value *primitiveIsNumber(Value *args){
     }
 
     Value *isNumber = makeNull();
+    isNumber->b = (car(args)->type == INT_TYPE || car(args)->type == DOUBLE_TYPE);
     isNumber->type = BOOL_TYPE;
-	if(car(args)->type == INT_TYPE || car(args)->type == DOUBLE_TYPE){
-		isNumber->b = true;
-	} else {
-    	isNumber->b = false;
-	}
     return isNumber;
 }
-
 
 /*
 * Reads in a file and excutes the Scheme code within as if

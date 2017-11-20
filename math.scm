@@ -6,6 +6,12 @@
         (and (<= x y) (<= y x))
         (evalError "Input to = must be number."))))
 
+(define >=
+    (lambda (x y)
+        (if (and (number? x) (number? y))
+            (<= (- y x) 0)
+            (evalError "Input to >= must be number."))))
+
 (define zero?
   (lambda (x)
     (= 0 x)))
