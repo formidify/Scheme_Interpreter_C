@@ -587,8 +587,8 @@ Value *primitiveSubtract(Value *args) {
     }
     if (numberValue->type == DOUBLE_TYPE){
         numberValue->d = diff;
-    }
-    else{
+    } else{
+        numberValue->type = INT_TYPE;
         numberValue->i = (int) diff;
     }
     return numberValue;
