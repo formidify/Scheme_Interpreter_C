@@ -1,26 +1,23 @@
+;;A library containing built-in Scheme functions for lists.
 (load "math.scm")
 
 (define list
   (lambda x x))
 
 (define append
-  (lambda x
-    (letrec ((helper (lambda (x y) (if (null? x) y (cons (car x) (helper (cdr x) y))))))
-      (cond ((null? x)
-             (quote ()))
-            ((null? (cdr x))
-             (car x))
-            ((not (null? (cdr (cdr x))))
-             (append (car x) (car (cdr x))))
-            ((and (pair? (car x)) (pair? (car (cdr x))))
-             (helper (car x) (car (cdr x))))
-            ((and (pair? (car x)) (not (pair? (car (cdr x)))))
-             (helper (car x) (car (cdr x))))
-            ((null? (car x))
-             (car (cdr x)))
-            ((not (pair? (car x)))
-             (evalError "Cannot append to non-list."))))))
-
+    (lambda x
+        (letrec ((helper (lambda (x y)
+                    (if (null? y)
+                        x
+                        (letrec ((helper2 (lambda (x)
+                                (if (null? x)
+                                    (helper (car y) (cdr y))
+                                    (if (pair? x)
+                                        (cons (car x) (helper2 (cdr x)))
+                                        (evalError "Cannot append to non-list")
+                                        )))))
+                            (helper2 x))))))
+            (helper '() x))))
 
 (define caar
   (lambda (x)

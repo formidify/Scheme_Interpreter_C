@@ -1,3 +1,4 @@
+(load "lists.scm")
 (cdr (quote (1)))
 ;(car (quote ()))
 ;(cdr (quote ()))
@@ -6,5 +7,17 @@
 (null? (quote abc))
 (null? (quote (x y z)))
 
+;; does it print out variadic functions
+'(cons and or + - / *)
 cons
+
+;; test and/or
+(and #t #f)
+(and #f #f)
+(or #t #f)
+(or #f #f)
+
+;; test cond
+(cond ((= 1 1)))
+(cond (23))
 
