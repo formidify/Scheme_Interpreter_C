@@ -55,7 +55,7 @@ Value *parseQuote(Value *tree, Value *token){
 * complete if (and only if) depth == 0 when the parse function returns.
 */
 Value *addToParseTree(Value *tree, int *depth, Value *token){
-	if(token->type == QUOTE_TYPE){
+	if(token->type == QUOTE_TYPE && (!quoteSugar)){
 		quoteSugar = true;
 		return tree;
 	}
@@ -184,6 +184,9 @@ void printTree(Value *tree){
 			break;
 		case CONS_TYPE:
 			printTreeConsType(tree);
+			break;
+		case QUOTE_TYPE:
+			printf("'");
 			break;
 		default:
 			syntaxError("Syntax error: unexpected value type in parse tree.");

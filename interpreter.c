@@ -735,6 +735,9 @@ Value *primitiveIsEqual(Value *args){
         case PRIMITIVE_TYPE:
             isEqual->b = &val1->pf == &val2->pf;
             break;
+        case QUOTE_TYPE:
+            isEqual->b = true;
+            break;
         default:
             evaluationError("Unrecognized value type.");
     }
@@ -998,7 +1001,9 @@ void printResult(Value *result);
 void printEvalConsType(Value *result){
     printResult(car(result));
     if(cdr(result)->type != NULL_TYPE){
-        printf(" ");
+        if(car(result)->type != QUOTE_TYPE){
+            printf(" ");
+        }
         if(cdr(result)->type != CONS_TYPE){
             printf(". ");
             printResult(cdr(result));
@@ -1036,6 +1041,9 @@ void printResult(Value *result){
             break;
         case DOUBLE_TYPE:
             printf("%f", result->d);
+            break;
+        case QUOTE_TYPE:
+            printf("'");
             break;
         case STR_TYPE:
             printStr(result->s);
