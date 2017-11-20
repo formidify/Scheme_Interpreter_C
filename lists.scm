@@ -56,7 +56,7 @@
            0)
           (else
            (evalError "Argument must be a valid list.")))))
-		   
+
 (define list-ref
   (lambda (x y)
     (cond ((and (pair? x) (<= 0 y))
@@ -74,8 +74,7 @@
           ((and (not (pair? x)) (= y 0))
            x)
           (else #f))))
-		  
-		  
+
 (define member
   (lambda (x y)
     (cond ((and (list? y) (not (null? y)))

@@ -8,5 +8,7 @@
 (append (quote ()) (quote (2 3 4)))
 (append)
 (append (quote (1 2 3)))
+(append (quote ()) (quote (1 2)) 1)
+(append (quote ()) (quote (1 2)) (quote (1 2)) (quote (1 2)))
 (append 1 2)
 (append 1 2 3)
